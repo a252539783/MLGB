@@ -2,6 +2,7 @@ package mobile.xiyou.atest;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import java.util.HashMap;
 
@@ -16,6 +17,7 @@ public class AppManager {
     private AppManager()
     {
         this.apps=new HashMap<>();
+        Log.e("xx","new");
     }
 
     public App getApp(int id)
@@ -38,6 +40,7 @@ public class AppManager {
 
     public static AppManager get()
     {
+        Log.e("xx","sb"+(mgr==null));
         synchronized (AppManager.class)
         {
             if (mgr==null)

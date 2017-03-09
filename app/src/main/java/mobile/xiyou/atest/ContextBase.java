@@ -21,12 +21,13 @@ public class ContextBase {
             return mCompatModePackages.compatibilityInfoForPackageLocked(ai);
         }
          */
-    public static void init(Object thread)
+    public static void init(Object thread,ApplicationInfo info)
     {
         try {
-            thread=readField(Class.forName("android.app.ActivityThread"),null,"currentActivityThread");
+            //thread=readField(Class.forName("android.app.ActivityThread"),null,"currentActivityThread");
             Object compat=readField(Class.forName("android.content.res.CompatibilityInfo"),null,"DEFAULT_COMPATIBILITY_INFO");
-            invoke(Class.forName("android.app.ActivityThread"),thread,"getPackageInfoNoCheck",new Class[]{ApplicationInfo.class,compat.getClass()},new ApplicationInfo(),compat);   //LoadedApk
+            Log.e("xx",thread.getClass().getName());
+            invoke(thread.getClass(),thread,"getPackageInfoNoCheck",new Class[]{ApplicationInfo.class,Class.forName("android.content.res.CompatibilityInfo")},info,compat);   //LoadedApk
         } catch (ClassNotFoundException e) {
             Log.e("xx",e.toString());
         }

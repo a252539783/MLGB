@@ -66,12 +66,10 @@ public class App {
             am = AssetManager.class.newInstance();
             Method add = am.getClass().getMethod("addAssetPath", String.class);
             add.invoke(am, apkPath);
-            Log.e("xx",apkPath);
             res = new Resources(am, c.getResources().getDisplayMetrics(), c.getResources().getConfiguration());
             theme = res.newTheme();
             theme.setTo(cc.getTheme());
             theme.applyStyle(info.info.applicationInfo.theme, true);
-
         } catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());
         } catch (InstantiationException e) {
@@ -90,6 +88,11 @@ public class App {
     public void launch()
     {
 
+    }
+
+    public ClassLoader getLoader()
+    {
+        return loader;
     }
 
     public ActivityInfo getActInfo(String name)
@@ -221,6 +224,7 @@ public class App {
             Object thread=readField(Activity.class,base,"mMainThread"),token=readField(Activity.class,base,"mToken"),ident=readField(Activity.class,base,"mIdent"),intent=readField(Activity.class,base,"mIntent"),
                     mLastNonConfigurationInstances=readField(Activity.class,base,"mLastNonConfigurationInstances"),mCurrentConfig=readField(Activity.class,base,"mCurrentConfig"),mReferrer=readField(Activity.class,base,"mReferrer"),
                     mVoiceInteractor=readField(Activity.class,base,"mVoiceInteractor");
+            ContextBase.init(thread,info.info.applicationInfo);
             Method ms[]=Activity.class.getDeclaredMethods();
             Method m=null;
             for (int i=0;i<ms.length;i++)

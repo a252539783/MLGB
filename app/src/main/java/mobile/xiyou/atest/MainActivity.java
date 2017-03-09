@@ -58,13 +58,14 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
         requestWindowFeature(FEATURE_ACTION_BAR_OVERLAY);
         setContentView(R.layout.activity_main);
         findViewById(R.id.bbb).setOnClickListener(this);
-        Log.e("xx",getWindow().hasFeature(Window.FEATURE_ACTION_BAR)+"xx");
+        //Log.e("xx",getWindow().hasFeature(Window.FEATURE_ACTION_BAR)+"xx");
     }
 
 
 
     @Override
     public void onClick(View v) {
+       // AppManager.get().startApp(this,"xiyou.mobile.android.elisten",0);
         AppManager.get().startApp(this,"com.example.share4_15",0);
     }
 

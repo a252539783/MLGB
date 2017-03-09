@@ -3,6 +3,7 @@ package mobile.xiyou.atest;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Instrumentation;
+import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
@@ -22,6 +23,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.RemoteViews;
 
 import static mobile.xiyou.atest.Rf.*;
 
@@ -60,6 +62,14 @@ public class ActivityBase extends Activity{
             Log.e("xx",e.getCause().toString()+":"+method);
         }
         return null;
+    }
+
+    @Override
+    public ClassLoader getClassLoader() {
+        if (app!=null)
+        return app.getLoader();
+
+        return super.getClassLoader();
     }
 
     @Override
