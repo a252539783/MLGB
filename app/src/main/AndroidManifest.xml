@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="mobile.xiyou.atest">
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Holo.Light">
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".TestActivity"
+            android:theme="@android:style/Theme.Holo.Light"
+            />
+        <activity android:name=".ActivityBase$A1"
+            />
+        <activity android:name=".ActivityBase$A2"
+            />
+        <activity android:name=".ActivityBase$A3"
+            />
+        <activity android:name=".ActivityBase$A4"
+            />
+        <activity android:name=".ActivityBase$A5"
+            />
+    </application>
+
+</manifest>
