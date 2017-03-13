@@ -66,91 +66,253 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
     @Override
     public void onClick(View v) {
        // AppManager.get().startApp(this,"xiyou.mobile.android.elisten",0);
-        AppManager.get().startApp(this,"com.example.share4_15",0);
+        AppManager.get().startApp(this,"com.example.wyz.xiyoug",0);
     }
-
-    public void test(Bundle savedInstanceState)
+/*
+    public class Queue
     {
-        try {
+        var login = {name
+        :'',num:'',class:'',sex:'',tel:'',message:'',group:'',session:'',vercode:'',password:'',type:'',mail:'',state:'',init:
 
-            cc = createPackageContext("a.a.zzz", CONTEXT_IGNORE_SECURITY | CONTEXT_INCLUDE_CODE);
-            //  test.setText(c.getClassLoader().toString()+"\n");
-            ClassLoader c1;
-            String apkpath = createPackageContext("a.a.zzz", CONTEXT_IGNORE_SECURITY).getPackageResourcePath();
-            info = getPackageManager().getPackageArchiveInfo(apkpath, 1);
-            String className = info.activities[0].name;
-            c1 = new DexClassLoader(apkpath, "/data/data/mobile.xiyou.atest/files", info.applicationInfo.nativeLibraryDir, ClassLoader.getSystemClassLoader());
-            activity = (Activity) c1.loadClass(className).getConstructor(new Class[]{}).newInstance(new Object[]{});
-
-
-            am = AssetManager.class.newInstance();
-            Method add = am.getClass().getMethod("addAssetPath", String.class);
-            add.invoke(am, apkpath);
-            res = new Resources(am, getResources().getDisplayMetrics(), getResources().getConfiguration());
-            theme = res.newTheme();
-            theme.setTo(cc.getTheme());
-            theme.applyStyle(info.applicationInfo.theme, true);
-        } catch (ClassNotFoundException e) {
-            //test.setText(test.getText()+e.toString()+"\n");
-            Log.e("xx", e.toString());
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e("xx", e.toString());
-        } catch (NoSuchMethodException e) {
-            Log.e("xx", e.toString());
-        } catch (InstantiationException e) {
-            Log.e("xx", e.toString());
-        } catch (IllegalAccessException e) {
-            Log.e("xx", e.toString());
-        } catch (InvocationTargetException e) {
-            Log.e("xx", e.toString());
+        function() {
+            this.checkInfHandle(login.checkInf)
         }
 
+        ,checkInfHandle:
 
-        Method onc = null, attach = null, start = null;
-        Field thread = null, mLastNonConfigurationInstances = null, mVoiceInteractor = null, window = null;
-        try {
-            thread = Activity.class.getDeclaredField("mMainThread");
-            thread.setAccessible(true);
-            window = Activity.class.getDeclaredField("mWindow");
-            window.setAccessible(true);
-            mLastNonConfigurationInstances = Activity.class.getDeclaredField("mLastNonConfigurationInstances");
-            mLastNonConfigurationInstances.setAccessible(true);
-            mVoiceInteractor = Activity.class.getDeclaredField("mVoiceInteractor");
-            mVoiceInteractor.setAccessible(true);
-            //attach=Activity.class.getDeclaredMethod("attach",new Class[]{Context.class,field.get(this).getClass(),Instrumentation.class,
-            //        IBinder.class,Object.class,Application.class, Intent.class,ActivityInfo.class,CharSequence.class,Activity.class,
-            //        String.class,Object.class,
-            //        Configuration.class,String.class,Object.class});
-            Method[] xxx = Activity.class.getDeclaredMethods();
-            for (int i = 0; i < xxx.length; i++) {
-                if (xxx[i].getName().equals("attach")) {
-                    attach = xxx[i];
-                    attach.setAccessible(true);
-                    break;
+        function(callback) {
+            var iCookie = "";
+            var url = location.search;
+            login.num = url.split("=")[1];
+            callback()
+        }
+
+        ,checkInf:
+
+        function() {
+            $.ajax({url:'http://www.tjoe18.cn:3000/check', dataType:"jsonp", data:{
+                num:
+                login.num,},headers:
+            {
+                withCredentials:
+                true
+            },success:
+            function(data) {
+                if (data.result == "without sign") {
+                    login.signOut();
+                    login.setSwiper();
+                    login.setBtnStyle();
+                    login.setForm();
+                    login.setBack();
+                    login.setHomeHandle();
+                    login.setBtnHandle()
+                } else if (data.result == "sign up") {
+                    login.setThenAnimated();
+                    login.signOut()
+                } else if (data.result == "without login") {
+                    window.location.href = "index.html"
                 }
+            }})}
+
+        ,signOut:
+
+        function() {
+            var btn = document.getElementById('quit');
+            btn.onclick = function() {
+                $.cookie("session_from_qd", null);
+                alert("宸查€€鍑虹櫥褰�");
+                window.location.href = "index.html"
             }
-            onc = Activity.class.getDeclaredMethod("performCreate", new Class[]{Bundle.class, PersistableBundle.class});
-            onc.setAccessible(true);
-            start = Activity.class.getDeclaredMethod("performStart", new Class[]{});
-            start.setAccessible(true);
-        } catch (NoSuchMethodException e) {
-            Log.e("xx", e.toString());
-        } catch (NoSuchFieldException e) {
-            Log.e("xx", e.toString());
-        }
-        try {
-            attach.invoke(activity, new Object[]{this, null, new Instrumentation(), null, 0, getApplication(), getIntent(), info.activities[0], "xxx", getParent(), "00", null, null, "", null});
-            window.set(activity, window.get(this));
-
-            onc.invoke(activity, new Object[]{savedInstanceState, null});
-            start.invoke(activity, new Object[]{});
-        } catch (IllegalAccessException e) {
-            Log.e("xx", e.toString());
-        } catch (InvocationTargetException e) {
-            Log.e("xx", e.getCause().toString());
         }
 
+        ,setBtnHandle:
+
+        function() {
+            var btn = document.getElementById('login-btn');
+            btn.onclick = login.setBtn
+        }
+
+        ,removeSetBtn:
+
+        function() {
+            var btn = document.getElementById('login-btn');
+            btn.removeEventListener('click', this.setBtn)
+        }
+
+        ,setBtn:
+
+        function() {
+            login.name = document.getElementById('name').value;
+            login.num = document.getElementById('num').value;
+            login.tel = document.getElementById('tel').value;
+            login.message = document.getElementById('message').value;
+            login.group = document.getElementById('group').value;
+            login.mail = document.getElementById('mail').value;
+            var telRe =/^(13[0 - 9] | 15[0 | 1 | 3 | 6 | 7 | 8 | 9] | 17[0 - 9] | 18[0 - 9])\d {
+                8
+            } $ /; var mailRe =/^(\w -*\.*)+ @(\w- ?) +(\.\w {
+                2,})+$ /; var nameRe =/[\u4E00 -\u9FA5]{
+                2, 5
+            } ( ?:路[\u4E00 -\u9FA5]{
+                2, 5
+            })
+            var numRe =/^[0 - 9]*$ /; if (!nameRe.test(login.name)) {
+                alert("璇锋鏌ュ鍚嶆槸鍚﹁緭鍏ユ纭�")
+            } else if (!numRe.test(login.num)) {
+                alert("璇锋鏌ュ鍙锋槸鍚﹁緭鍏ユ纭�")
+            } else if (!mailRe.test(login.mail)) {
+                alert("璇锋鏌ラ偖绠辨槸鍚﹁緭鍏ユ纭�")
+            } else if (login.message.length > 30) {
+                alert("鐣欒█鍐呭瓒呰繃闄愬埗")
+            } else if (!login.tel) {
+                alert("杩樻病鍐欑數璇濆憪")
+            } else if (!login.mail) {
+                alert("鑰侀搧锛岄兘鍟ユ椂浠ｄ簡杩樻病閭锛�")
+            } else if (!login.group) {
+                alert("涓€瀹氳閫変釜鏂瑰悜鍛€~!")
+            } else {
+                $.ajax({url:'http://www.tjoe18.cn:3000/add', dataType:"jsonp", headers:{
+                    withCredentials:
+                    true
+                },data:
+                {
+                    newData:
+                    {
+                        name:
+                        login.name, num:login.num,class:login.class, sex:login.sex, tel:
+                        login.tel, message:login.message, mail:login.mail, group:login.group,},},
+                success:
+                function(data) {
+                    if (!data.error) {
+                        alert("鎶ュ悕鎴愬姛鍟");
+                        login.setThenAnimated()
+                    } else if (data.result == "wrong name") {
+                        alert("璇锋鏌ュ鍚嶆槸鍚︽纭�");
+                        setBtn()
+                    } else if (data.result == "wrong num") {
+                        alert("璇锋鏌ュ鍙锋槸鍚︽纭�");
+                        setBtn()
+                    }
+                },})}
+        }
+
+        ,setThenAnimated:
+
+        function() {
+            clearInterval(login.timeId);
+            var form = document.getElementsByClassName('login-form')[0];
+            var btn = document.getElementById('login-btn');
+            form.setAttribute("class", "login-form");
+            form.setAttribute("class", "login-form animated bounceOut");
+            btn.setAttribute("class", "login-form animated bounceOut");
+            $.ajax({url:'http://www.tjoe18.cn:3000/returnInf', dataType:"jsonp", data:{
+                num:
+                login.num,},headers:
+            {
+                withCredentials:
+                true
+            },success:
+            function(data) {
+                var message = document.getElementById('iMessage');
+                if (data.result[0].state == "宸插彂鍏�") {
+                    iMessage.value = data.result[0].name + "鍚屽浣犲ソ锛佹槸閲戝瓙鎬讳細鍙戝厜鐨勶紝璇风户缁姫鍔涳紒"
+                } else {
+                    if (!data.result[0].state) {
+                        login.state = "鏈潰璇曟垨鐘舵€佹湭鏇存柊"
+                    } else {
+                        login.state = data.result[0].state
+                    }
+                    iMessage.value = data.result[0].name + "鍚屽浣犲ソ锛佷綘宸茬粡鎶曢€掍簡" + data.result[0].group + "缁勫暒~~浣犵幇鍦ㄧ殑鐘舵€佹槸锛�" + login.state
+                }
+            }});
+            setTimeout(function() {
+                var lis = document.getElementsByClassName('check-li');
+                lis[0].style.display = "block";
+                lis[0].setAttribute("class", "check-li animated bounceInRight");
+                setTimeout(function() {
+                    var lis = document.getElementsByClassName('check-li');
+                    lis[1].style.display = "block";
+                    lis[1].setAttribute("class", "check-li animated bounceInRight");
+                    var iSwiper = new Swiper(".swiper-container", {initialSlide:1, parallax:
+                    true, touchRatio:0,})},200)},20)}
+
+        ,setSwiper:
+
+        function() {
+            var iSwiper = new Swiper(".swiper-container", {initialSlide:0, parallax:
+            true, touchRatio:0,})}
+
+        ,setBack:
+
+        function() {
+            var userAgentInfo = navigator.userAgent;
+            var Agents =["Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod"];
+            var flag = true;
+            for (var v = 0; v < Agents.length; v++) {
+                if (userAgentInfo.indexOf(Agents[v]) > 0) {
+                    flag = false;
+                    break
+                }
+            } if (!flag) {
+                var back = document.getElementById("login");
+                var html = document.getElementsByTagName("html")[0];
+                var body = document.getElementsByTagName("body")[0];
+                body.style.width = html.style.width = document.body.clientWidth + "px";
+                body.style.height = html.style.height = document.body.clientHeight + "px";
+                back.style.backgroundSize = document.body.clientWidth + "px " + document.body.clientHeight + "px"
+            }
+        }
+
+        ,timeId:'',setBtnStyle:
+
+        function() {
+            var btn = document.getElementById('login-btn');
+            login.timeId = setInterval(function() {
+                btn.setAttribute("class", "animated swing");
+                setTimeout(function() {
+                    btn.setAttribute("class", "")
+                },1000)},3000)}
+
+        ,setForm:
+
+        function() {
+            var lis = document.getElementsByClassName('login-li');
+            var i = 0;
+            setTimeout(function() {
+                lis[i].setAttribute("class", "login-li animated bounceInRight");
+                lis[i].style.display = "block";
+                i++;
+                setTimeout(function() {
+                    lis[i].setAttribute("class", "login-li animated bounceInRight");
+                    lis[i].style.display = "block";
+                    i++;
+                    setTimeout(function() {
+                        lis[i].setAttribute("class", "login-li animated bounceInRight");
+                        lis[i].style.display = "block";
+                        i++;
+                        setTimeout(function() {
+                            lis[i].setAttribute("class", "login-li animated bounceInRight");
+                            lis[i].style.display = "block";
+                            i++;
+                            setTimeout(function() {
+                                lis[i].setAttribute("class", "login-li animated bounceInRight");
+                                lis[i].style.display = "block";
+                                i++;
+                                setTimeout(function() {
+                                    lis[i].setAttribute("class", "login-li animated bounceInRight");
+                                    lis[i].style.display = "block"
+                                },100)},100)},100)},100)},100)},100)}
+
+        ,setHomeHandle:
+
+        function() {
+        }
+
+        ,
     }
+
+    ;login.init();
+    }*/
 
 
 

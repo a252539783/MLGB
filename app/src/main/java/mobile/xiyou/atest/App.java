@@ -36,18 +36,21 @@ public class App {
     public static final String EXTRA_ID="id";
 
     private PkgInfo info;
-    private PathClassLoader loader;
+    private ClassLoader loader,defaultLoader;
     private HashMap<String,Activity> activities;
     private Application application;
     private Resources res;
     private AssetManager am;
     private Resources.Theme theme;
     private HashMap<Integer,Resources.Theme> themes;
+    private Context context;
     private int id=0;
     private boolean appAttached=false;
 
     public App(Context c,String packageName)
     {
+        context=c;
+        defaultLoader=c.getClassLoader();
         try {
             Context cc=c.createPackageContext(packageName, CONTEXT_IGNORE_SECURITY);
             String apkPath=cc.getPackageResourcePath();
@@ -182,11 +185,11 @@ public class App {
         try {
             return (Activity)loader.loadClass(name).newInstance();
         } catch (InstantiationException e) {
-            e.printStackTrace();
+            Log.e("xx",e.toString());
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            Log.e("xx",e.toString());
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            Log.e("xx",e.toString());
         }
 
         return null;
@@ -208,7 +211,13 @@ public class App {
             Method m = Application.class.getDeclaredMethod("attach", Context.class);
             m.setAccessible(true);
             m.invoke(application, c);
+            invoke(Application.class,application,"onCreate",new Class[]{});
             appAttached=true;
+            if (defaultLoader!=context.getClassLoader())
+            {
+                loader=defaultLoader;
+                Log.e("xx",loader.toString());
+            }
         }catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());
         } catch (IllegalAccessException e) {
