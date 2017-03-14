@@ -13,13 +13,16 @@ import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.IBinder;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Map;
 
 import dalvik.system.PathClassLoader;
 
@@ -46,19 +49,31 @@ public class App {
     private Context context;
     private int id=0;
     private boolean appAttached=false;
+    private Object mThread=null,loadedApk=null;
 
     public App(Context c,String packageName)
     {
         context=c;
         defaultLoader=c.getClassLoader();
         try {
+            mThread=invoke(Class.forName("android.app.ActivityThread"),null,"currentActivityThread",new Class[]{});
+
             Context cc=c.createPackageContext(packageName, CONTEXT_IGNORE_SECURITY);
             String apkPath=cc.getPackageResourcePath();
             info=PkgInfo.getPackageArchiveInfo(apkPath, 1);
 
-            //Init classes:
+            //Init
+            loadedApk=ContextBase.loadApk(mThread,info.info.applicationInfo);
             loader=new PathClassLoader(apkPath,cc.getApplicationInfo().nativeLibraryDir,ClassLoader.getSystemClassLoader());
-            //activities=new HashMap<>();
+            ClassLoader old=c.getClassLoader();
+            setField(ClassLoader.class,loader,"parent",old.getParent());
+            //setField(ClassLoader.class,old,"parent",loader);
+            //loader=c.getClassLoader();
+            Class AT=Class.forName("android.app.ActivityThread");
+            Map packages=(Map)readField(AT,mThread,"mPackages");
+            packages.put(info.info.packageName,new WeakReference<Object>(loadedApk));
+            setField(loadedApk.getClass(),loadedApk,"mClassLoader",loader);
+
             if (info.info.applicationInfo.name!=null)
                 application=(Application) loader.loadClass(info.info.applicationInfo.name).newInstance();
             else
@@ -183,7 +198,9 @@ public class App {
     public Activity getActivity(String name)
     {
         try {
-            return (Activity)loader.loadClass(name).newInstance();
+            ClassLoader l=(ClassLoader) invoke(loadedApk.getClass(),loadedApk,"getClassLoader",new Class[]{});
+            //l=context.getClassLoader();
+            return (Activity) l.loadClass(name).newInstance();
         } catch (InstantiationException e) {
             Log.e("xx",e.toString());
         } catch (IllegalAccessException e) {
@@ -213,10 +230,10 @@ public class App {
             m.invoke(application, c);
             invoke(Application.class,application,"onCreate",new Class[]{});
             appAttached=true;
-            if (defaultLoader!=context.getClassLoader())
+            if (loader!=readField(loadedApk.getClass(),loadedApk,"mClassLoader"))
             {
-                loader=defaultLoader;
-                Log.e("xx",loader.toString());
+                //loader=defaultLoader;
+                Log.e("xx","change");
             }
         }catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());

@@ -3,6 +3,7 @@ package mobile.xiyou.atest;
 import android.util.Log;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -67,8 +68,12 @@ public class Rf {
             Method m = r.getDeclaredMethod(name,vp);
             m.setAccessible(true);
             return m.invoke(o,params);
-        }catch (Exception e)
+        }catch (InvocationTargetException e)
         {
+            Log.e("xx",e.getCause().toString());
+        } catch (NoSuchMethodException e) {
+            Log.e("xx",e.toString());
+        } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
         }
         return null;

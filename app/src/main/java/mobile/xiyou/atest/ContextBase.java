@@ -32,4 +32,19 @@ public class ContextBase {
             Log.e("xx",e.toString());
         }
     }
+
+    public static Object loadApk(Object thread,ApplicationInfo info)
+    {
+        Object loaded=null;
+        try {
+            //thread=readField(Class.forName("android.app.ActivityThread"),null,"currentActivityThread");
+            Object compat=readField(Class.forName("android.content.res.CompatibilityInfo"),null,"DEFAULT_COMPATIBILITY_INFO");
+            Log.e("xx",thread.getClass().getName());
+            loaded=invoke(thread.getClass(),thread,"getPackageInfoNoCheck",new Class[]{ApplicationInfo.class,Class.forName("android.content.res.CompatibilityInfo")},info,compat);   //LoadedApk
+        } catch (ClassNotFoundException e) {
+            Log.e("xx",e.toString());
+        }
+
+        return loaded;
+    }
 }
