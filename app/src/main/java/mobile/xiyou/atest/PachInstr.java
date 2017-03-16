@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -35,14 +36,18 @@ public class PachInstr extends Instrumentation {
     public ActivityResult execStartActivity(
             Context who, IBinder contextThread, IBinder token, Activity target,
             Intent intent, int requestCode, Bundle options) {
-        intent=AppManager.get().getApp(0).startActivityIntent(who,intent.getComponent().getClassName());
+        intent=AppManager.get().getApp(0).startActivityIntent(AppManager.get().getContext(),intent.getComponent().getClassName());
 
         Object x=null;
         try {
             Method m = Instrumentation.class.getDeclaredMethod("execStartActivity", Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class, int.class, Bundle.class);
             x=m.invoke(base, who, contextThread, token, target, intent, requestCode, options);
-        }catch (Exception e)
+        }catch (InvocationTargetException e)
         {
+            Log.e("xx",e.getCause().toString());
+        } catch (NoSuchMethodException e) {
+            Log.e("xx",e.toString());
+        } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
         }
 

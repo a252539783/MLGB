@@ -2,21 +2,9 @@ package mobile.xiyou.atest;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.TypedArray;
-import android.graphics.Rect;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewCompat;
-import android.support.v4.view.WindowInsetsCompat;
-import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
 
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by admin on 2017/3/1.
@@ -25,6 +13,7 @@ import java.util.List;
 public class AppManager {
     private HashMap<Integer,App> apps;
     private static AppManager mgr=null;
+    private Context context;
 
     private AppManager()
     {
@@ -39,6 +28,7 @@ public class AppManager {
 
     public void startApp(Context c,String packageName,int i)
     {
+        context =c;
         App x=null;
             if (!apps.containsKey(i))
             {
@@ -48,6 +38,11 @@ public class AppManager {
             }else
             x=apps.get(i);
         c.startActivity(x.startActivityIntent(c,x.getInfo().mainClass));
+    }
+
+    public Context getContext()
+    {
+        return context;
     }
 
     public static AppManager get()

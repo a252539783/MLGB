@@ -59,25 +59,34 @@ public class App {
             mThread=invoke(Class.forName("android.app.ActivityThread"),null,"currentActivityThread",new Class[]{});
 
             Context cc=c.createPackageContext(packageName, CONTEXT_IGNORE_SECURITY);
+
             String apkPath=cc.getPackageResourcePath();
             info=PkgInfo.getPackageArchiveInfo(apkPath, 1);
 
+
             //Init
             loadedApk=ContextBase.loadApk(mThread,info.info.applicationInfo);
+            //Log.e("xx","xx"+(readField(loadedApk.getClass(),loadedApk,"mPackageName")==null));
+            //invoke(loadedApk.getClass(),loadedApk,"makeApplication",new Class[]{boolean.class,Instrumentation.class},false,null);
+            //cc=ContextBase.createActivityContext(mThread,loadedApk);
+            //context=cc;
             loader=new PathClassLoader(apkPath,cc.getApplicationInfo().nativeLibraryDir,ClassLoader.getSystemClassLoader());
             ClassLoader old=c.getClassLoader();
             setField(ClassLoader.class,loader,"parent",old.getParent());
-            //setField(ClassLoader.class,old,"parent",loader);
+            setField(ClassLoader.class,old,"parent",loader);
             //loader=c.getClassLoader();
             Class AT=Class.forName("android.app.ActivityThread");
             Map packages=(Map)readField(AT,mThread,"mPackages");
             packages.put(info.info.packageName,new WeakReference<Object>(loadedApk));
             setField(loadedApk.getClass(),loadedApk,"mClassLoader",loader);
 
-            if (info.info.applicationInfo.name!=null)
-                application=(Application) loader.loadClass(info.info.applicationInfo.name).newInstance();
+            if (info.info.applicationInfo.name!=null) {
+                application = (Application) loader.loadClass(info.info.applicationInfo.name).newInstance();
+                Log.e("xx","application:"+info.info.applicationInfo.name);
+            }
             else
             application=new Application();
+            setField(loadedApk.getClass(),loadedApk,"mApplication",application);
             themes=new HashMap<>();
 
             //Load resources:
@@ -93,7 +102,7 @@ public class App {
         } catch (InstantiationException e) {
             Log.e("xx",e.toString());
         } catch (InvocationTargetException e) {
-            Log.e("xx",e.toString());
+            Log.e("xx",e.getCause().toString());
         } catch (PackageManager.NameNotFoundException e) {
             Log.e("xx",e.toString());
         } catch (IllegalAccessException e) {
@@ -224,6 +233,7 @@ public class App {
 
     public void attachApplication(Context c)
     {
+        c=context;
         try {
             Method m = Application.class.getDeclaredMethod("attach", Context.class);
             m.setAccessible(true);
@@ -240,7 +250,7 @@ public class App {
         } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
         } catch (InvocationTargetException e) {
-            Log.e("xx",e.toString());
+            Log.e("xx",e.getCause().toString());
         }
     }
 
@@ -275,7 +285,7 @@ public class App {
             //setField(ContextThemeWrapper.class,target,"mTheme",getTheme());
             //setField(Activity.class,base,"mInstrumentation",new PachInstr(new Instrumentation()));
         } catch (InvocationTargetException e) {
-            Log.e("xx",e.toString());
+            Log.e("xx",e.getCause().toString());
         } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
         }
