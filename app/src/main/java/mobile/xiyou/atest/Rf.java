@@ -79,4 +79,57 @@ public class Rf {
         return null;
     }
 
+    public static Object invoke(Object o,String name,Class []vp,Object ...params)
+    {
+        Class r=o.getClass();
+        try {
+            Method m = r.getDeclaredMethod(name,vp);
+            m.setAccessible(true);
+            return m.invoke(o,params);
+        }catch (InvocationTargetException e)
+        {
+            Log.e("xx",e.getCause().toString());
+        } catch (NoSuchMethodException e) {
+            Log.e("xx",e.toString());
+        } catch (IllegalAccessException e) {
+            Log.e("xx",e.toString());
+        }
+        return null;
+    }
+
+    public static Object invoke(Object o,String name)
+    {
+        Class r=o.getClass();
+        try {
+            Method m = r.getDeclaredMethod(name,new Class[]{});
+            m.setAccessible(true);
+            return m.invoke(o);
+        }catch (InvocationTargetException e)
+        {
+            Log.e("xx",e.getCause().toString());
+        } catch (NoSuchMethodException e) {
+            Log.e("xx",e.toString());
+        } catch (IllegalAccessException e) {
+            Log.e("xx",e.toString());
+        }
+        return null;
+    }
+
+    public static Object invoke(Class r,Object o,String name)
+    {
+        try {
+            Method m = r.getDeclaredMethod(name,new Class[]{});
+            m.setAccessible(true);
+            return m.invoke(o);
+        }catch (InvocationTargetException e)
+        {
+            Log.e("xx",e.getCause().toString());
+        } catch (NoSuchMethodException e) {
+            Log.e("xx",e.toString());
+        } catch (IllegalAccessException e) {
+            Log.e("xx",e.toString());
+        }
+        return null;
+    }
+
 }
