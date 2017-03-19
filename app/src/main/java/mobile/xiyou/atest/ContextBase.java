@@ -58,7 +58,7 @@ import static mobile.xiyou.atest.Rf.*;
  * Created by admin on 2017/3/2.
  */
 
-public class ContextBase {
+public class ContextBase extends Context {
 
     /*
         r.packageInfo = ActivityThread.getPackageInfoNoCheck(
@@ -117,11 +117,14 @@ public class ContextBase {
 
         return c;
     }
-}
 
+/*
 class ReceiverRestrictedContext extends ContextWrapper {
+   private Context base;
+
     ReceiverRestrictedContext(Context base) {
         super(base);
+        this.base=base;
     }
 
     @Override
@@ -148,7 +151,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
         if (receiver == null) {
             // Allow retrieving current sticky broadcast; this is safe since we
             // aren't actually registering a receiver.
-            return super.registerReceiverAsUser(null, user, filter, broadcastPermission, scheduler);
+            return base.registerReceiverAsUser(null, user, filter, broadcastPermission, scheduler);
         } else {
             throw new ReceiverCallNotAllowedException(
                     "BroadcastReceiver components are not allowed to register to receive intents");
@@ -161,8 +164,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
                 "BroadcastReceiver components are not allowed to bind to services");
     }
 }
-
-class ContextI extends Context {
+*/
     private final static String TAG = "ContextImpl";
     private final static boolean DEBUG = false;
 
@@ -171,24 +173,24 @@ class ContextI extends Context {
      */
 //    private static ArrayMap<String, ArrayMap<String, SharedPreferencesImpl>> sSharedPrefs;
 
-    final Object mMainThread;     //ActivityThread
-    final Object mPackageInfo;    //LoadedAPK
+    Object mMainThread;     //ActivityThread
+    Object mPackageInfo;    //LoadedAPK
 
-    private final IBinder mActivityToken;
+    private IBinder mActivityToken;
 
-    private final UserHandle mUser;
+    private UserHandle mUser;
 
-    private final ApplicationContentResolver mContentResolver;
+    private ContentResolver mContentResolver;
 
-    private final String mBasePackageName;
-    private final String mOpPackageName;
+    private String mBasePackageName;
+    private String mOpPackageName;
 
-    private final Object mResourcesManager;     //ResourcesManager
-    private final Resources mResources;
-    private final Display mDisplay; // may be null if default display
+    private Object mResourcesManager;     //ResourcesManager
+    private Resources mResources;
+    private Display mDisplay; // may be null if default display
 //    private final DisplayAdjustments mDisplayAdjustments = new DisplayAdjustments();    //DisplayAdjustments
 
-    private final boolean mRestricted;
+    private boolean mRestricted;
 
     private App app;
     private Context mOuterContext;
@@ -200,6 +202,7 @@ class ContextI extends Context {
 
     private final Object mSync = new Object();
 
+    private String dataDir=null;
     private File mDatabasesDir;
     private File mPreferencesDir;
     private File mFilesDir;
@@ -235,8 +238,10 @@ class ContextI extends Context {
         return mResources;
     }
 
-/*    @Override
+    @Override
     public PackageManager getPackageManager() {
+        return mMainContext.getPackageManager();
+        /*
         if (mPackageManager != null) {
             return mPackageManager;
         }
@@ -248,11 +253,12 @@ class ContextI extends Context {
         }
 
         return null;
-    }         wait*/
+        */
+    }
 
     @Override
     public ContentResolver getContentResolver() {
-        return mContentResolver;
+        return mMainContext.getContentResolver();
     }
 
     @Override
@@ -262,8 +268,7 @@ class ContextI extends Context {
 
     @Override
     public Context getApplicationContext() {
-        return (mPackageInfo != null) ?
-                mPackageInfo.getApplication() : mMainThread.getApplication();
+        return app.getApplication();
     }
 
     @Override
@@ -334,7 +339,9 @@ class ContextI extends Context {
     public String getPackageName() {
         if (mPackageInfo != null) {
             //return mPackageInfo.getPackageName();
-            return (String)invoke(mPackageInfo,"getPackageName",new Class[]{});
+            mBasePackageName=(String)invoke(mPackageInfo,"getPackageName",new Class[]{});
+            mOpPackageName=mBasePackageName;
+            return mBasePackageName;
         }
         // No mPackageInfo means this is a Context for the system itself,
         // and this here is its name.
@@ -381,9 +388,11 @@ class ContextI extends Context {
         return makeFilename(getPreferencesDir(), name + ".xml");
     }
 
-    /*
+
     @Override
     public SharedPreferences getSharedPreferences(String name, int mode) {
+        return mMainContext.getSharedPreferences(name,mode);
+        /*
         SharedPreferencesImpl sp;
         synchronized (ContextImpl.class) {
             if (sSharedPrefs == null) {
@@ -423,8 +432,9 @@ class ContextI extends Context {
             sp.startReloadIfChangedUnexpectedly();
         }
         return sp;
+        */
     }
-*/
+
 
     private File getPreferencesDir() {
         synchronized (mSync) {
@@ -449,7 +459,7 @@ class ContextI extends Context {
         File f = makeFilename(getFilesDir(), name);
         try {
             FileOutputStream fos = new FileOutputStream(f, append);
-            setFilePermissionsFromMode(f.getPath(), mode, 0);
+            //setFilePermissionsFromMode(f.getPath(), mode, 0);
             return fos;
         } catch (FileNotFoundException e) {
         }
@@ -463,7 +473,7 @@ class ContextI extends Context {
                 -1, -1);
                 */
         FileOutputStream fos = new FileOutputStream(f, append);
-        setFilePermissionsFromMode(f.getPath(), mode, 0);
+        //setFilePermissionsFromMode(f.getPath(), mode, 0);
         return fos;
     }
 
@@ -684,7 +694,7 @@ class ContextI extends Context {
             flags |= SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING;
         }
         SQLiteDatabase db = SQLiteDatabase.openDatabase(f.getPath(), factory, flags, errorHandler);
-        setFilePermissionsFromMode(f.getPath(), mode, 0);
+        //setFilePermissionsFromMode(f.getPath(), mode, 0);
         return db;
     }
 
@@ -802,8 +812,10 @@ class ContextI extends Context {
         }
     }
 
-    /*
+
     public void startActivitiesAsUser(Intent[] intents, Bundle options, UserHandle userHandle) {
+        mMainContext.startActivities(intents, options);
+        /*
         if ((intents[0].getFlags()&Intent.FLAG_ACTIVITY_NEW_TASK) == 0) {
             throw new AndroidRuntimeException(
                     "Calling startActivities() from outside of an Activity "
@@ -813,10 +825,15 @@ class ContextI extends Context {
         mMainThread.getInstrumentation().execStartActivitiesAsUser(
                 getOuterContext(), mMainThread.getApplicationThread(), null,
                 (Activity) null, intents, options, userHandle.getIdentifier());
+                */
     }
 
     @Override
     public void startActivities(Intent[] intents, Bundle options) {
+
+        mMainContext.startActivities(intents, options);
+        /*
+
         warnIfCallingFromSystemProcess();
         if ((intents[0].getFlags()&Intent.FLAG_ACTIVITY_NEW_TASK) == 0) {
             throw new AndroidRuntimeException(
@@ -827,8 +844,9 @@ class ContextI extends Context {
         mMainThread.getInstrumentation().execStartActivities(
                 getOuterContext(), mMainThread.getApplicationThread(), null,
                 (Activity) null, intents, options);
+                */
     }
-    */
+
 
     @Override
     public void startIntentSender(IntentSender intent,
@@ -999,7 +1017,7 @@ class ContextI extends Context {
                                      Handler scheduler, int initialCode, String initialData,
                                      Bundle initialExtras) {
        // sendOrderedBroadcast(intent, receiverPermission, AppOpsManager.OP_NONE,
-         //       resultReceiver, scheduler, initialCode, initialData, initialExtras, options);
+        //        resultReceiver, scheduler, initialCode, initialData, initialExtras, options);
     }
 
 
@@ -1773,7 +1791,8 @@ class ContextI extends Context {
     }
 
     private int resolveUserId(Uri uri) {
-        return ContentProvider.getUserIdFromUri(uri, getUserId());
+        //return ContentProvider.getUserIdFromUri(uri, getUserId());
+        return (int)invoke(getImpl(mMainContext).getClass(),mMainContext,"resolveUserId",new Class[]{Uri.class},uri);
     }
 
     @Override
@@ -1924,14 +1943,16 @@ class ContextI extends Context {
         throw new PackageManager.NameNotFoundException(
                 "Application package " + application.packageName + " not found");
     }
-
+*/
     @Override
     public Context createPackageContext(String packageName, int flags)
             throws PackageManager.NameNotFoundException {
-        return createPackageContextAsUser(packageName, flags,
-                mUser != null ? mUser : Process.myUserHandle());
-    }
+        return mMainContext.createPackageContext(packageName, flags);
 
+   //     return createPackageContextAsUser(packageName, flags,
+    //            mUser != null ? mUser : Process.myUserHandle());
+    }
+/*
     @Override
     public Context createPackageContextAsUser(String packageName, int flags, UserHandle user)
             throws PackageManager.NameNotFoundException {
@@ -1955,27 +1976,34 @@ class ContextI extends Context {
         throw new PackageManager.NameNotFoundException(
                 "Application package " + packageName + " not found");
     }
+    */
 
     @Override
     public Context createConfigurationContext(Configuration overrideConfiguration) {
+
+        return mMainContext.createConfigurationContext(overrideConfiguration);
+        /*
         if (overrideConfiguration == null) {
             throw new IllegalArgumentException("overrideConfiguration must not be null");
         }
 
         return new ContextImpl(this, mMainThread, mPackageInfo, mActivityToken,
                 mUser, mRestricted, mDisplay, overrideConfiguration, Display.INVALID_DISPLAY);
+                */
     }
 
     @Override
     public Context createDisplayContext(Display display) {
+        return mMainContext.createDisplayContext(display);
+        /*
         if (display == null) {
             throw new IllegalArgumentException("display must not be null");
         }
 
         return new ContextImpl(this, mMainThread, mPackageInfo, mActivityToken,
-                mUser, mRestricted, display, null, Display.INVALID_DISPLAY);
+                mUser, mRestricted, display, null, Display.INVALID_DISPLAY);*/
     }
-    */
+
 /*
     Display getDisplay() {
         if (mDisplay != null) {
@@ -2000,10 +2028,12 @@ class ContextI extends Context {
     }
 */
     private File getDataDirFile() {
-        if (mPackageInfo != null) {
-            return new File(mMainContext.getFilesDir().getAbsolutePath()+((File)invoke(mPackageInfo,"getDataDirFile")).getAbsolutePath());
+        if (dataDir== null) {
+            dataDir=((File)invoke(mPackageInfo,"getDataDirFile")).getAbsolutePath();
+
         }
-        throw new RuntimeException("Not supported in system context");
+        return new File(mMainContext.getFilesDir().getAbsolutePath()+dataDir);
+        //throw new RuntimeException("Not supported in system context");
     }
 
 
@@ -2025,13 +2055,13 @@ class ContextI extends Context {
     }
 
 
-    private ContextImpl(ContextImpl container, ActivityThread mainThread,
-                        LoadedApk packageInfo, IBinder activityToken, UserHandle user, boolean restricted,
-                        Display display, Configuration overrideConfiguration, int createDisplayWithId) {
+    public ContextBase(Context container, Object mainThread,
+                        Object packageInfo,UserHandle user, boolean restricted
+                        ){
         mOuterContext = this;
 
+        mMainContext=container;
         mMainThread = mainThread;
-        mActivityToken = activityToken;
         mRestricted = restricted;
 
         if (user == null) {
@@ -2039,14 +2069,19 @@ class ContextI extends Context {
         }
         mUser = user;
 
+        mResources=app.getRes();
+
         mPackageInfo = packageInfo;
-        mResourcesManager = ResourcesManager.getInstance();
+        try {
+            mResourcesManager = invoke(Class.forName("android.app.ResourcesManager"),null,"getInstance");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            Log.e("xx","context init:"+e.toString());
+        }
 
-        final int displayId = (createDisplayWithId != Display.INVALID_DISPLAY)
-                ? createDisplayWithId
-                : (display != null) ? display.getDisplayId() : Display.DEFAULT_DISPLAY;
+       // final int displayId = (createDisplayWithId != Display.INVALID_DISPLAY) ? createDisplayWithId : (display != null) ? display.getDisplayId() : Display.DEFAULT_DISPLAY;
 
-        CompatibilityInfo compatInfo = null;
+   /*     Object compatInfo = null;
         if (container != null) {
             compatInfo = container.getDisplayAdjustments(displayId).getCompatibilityInfo();
         }
@@ -2055,11 +2090,11 @@ class ContextI extends Context {
                     ? packageInfo.getCompatibilityInfo()
                     : CompatibilityInfo.DEFAULT_COMPATIBILITY_INFO;
         }
-        mDisplayAdjustments.setCompatibilityInfo(compatInfo);
-        mDisplayAdjustments.setConfiguration(overrideConfiguration);
+   //     mDisplayAdjustments.setCompatibilityInfo(compatInfo);
+   //     mDisplayAdjustments.setConfiguration(overrideConfiguration);
 
-        mDisplay = (createDisplayWithId == Display.INVALID_DISPLAY) ? display
-                : ResourcesManager.getInstance().getAdjustedDisplay(displayId, mDisplayAdjustments);
+    //    mDisplay = (createDisplayWithId == Display.INVALID_DISPLAY) ? display
+    //            : ResourcesManager.getInstance().getAdjustedDisplay(displayId, mDisplayAdjustments);
 
         Resources resources = packageInfo.getResources(mainThread);
         if (resources != null) {
@@ -2073,7 +2108,8 @@ class ContextI extends Context {
                         overrideConfiguration, compatInfo);
             }
         }
-        mResources = resources;
+        */
+  /*      mResources = resources;
 
         if (container != null) {
             mBasePackageName = container.mBasePackageName;
@@ -2093,6 +2129,11 @@ class ContextI extends Context {
         }
 
         mContentResolver = new ApplicationContentResolver(this, mainThread, user);
+
+        */
+
+        mBasePackageName=null;
+        mOpPackageName=null;
     }
 
     void installSystemApplicationInfo(ApplicationInfo info, ClassLoader classLoader) {
@@ -2112,10 +2153,15 @@ class ContextI extends Context {
     */
 
     final Context getReceiverRestrictedContext() {
+        Object x;
+        return (x=invoke(getImpl(mMainContext).getClass(),mMainContext,"getReceiverRestrictedContext"))==null ? null:(Context) x;
+
+        /*
         if (mReceiverRestrictedContext != null) {
             return mReceiverRestrictedContext;
         }
         return mReceiverRestrictedContext = new ReceiverRestrictedContext(getOuterContext());
+        */
     }
 
     final void setOuterContext(Context context) {
@@ -2127,12 +2173,15 @@ class ContextI extends Context {
     }
 
     final IBinder getActivityToken() {
-        return mActivityToken;
+        return (IBinder) invoke(getImpl(mMainContext).getClass(),mMainContext,"getActivityToken");
     }
+
+    /*
 
     @SuppressWarnings("deprecation")
     static void setFilePermissionsFromMode(String name, int mode,
                                            int extraPermissions) {
+
         int perms = FileUtils.S_IRUSR|FileUtils.S_IWUSR
                 |FileUtils.S_IRGRP|FileUtils.S_IWGRP
                 |extraPermissions;
@@ -2147,7 +2196,8 @@ class ContextI extends Context {
                     + ", perms=0x" + Integer.toHexString(perms));
         }
         FileUtils.setPermissions(name, perms, -1, -1);
-    }
+
+    }*/
 
     private File validateFilePath(String name, boolean createDirectory) {
         File dir;
@@ -2164,13 +2214,14 @@ class ContextI extends Context {
         }
 
         if (createDirectory && !dir.isDirectory() && dir.mkdir()) {
-            FileUtils.setPermissions(dir.getPath(),
-                    FileUtils.S_IRWXU|FileUtils.S_IRWXG|FileUtils.S_IXOTH,
-                    -1, -1);
+            //FileUtils.setPermissions(dir.getPath(),
+             //       FileUtils.S_IRWXU|FileUtils.S_IRWXG|FileUtils.S_IXOTH,
+             //       -1, -1);
         }
 
         return f;
     }
+
 
     private File makeFilename(File base, String name) {
         if (name.indexOf(File.separatorChar) < 0) {
@@ -2221,13 +2272,13 @@ class ContextI extends Context {
     // ----------------------------------------------------------------------
     // ----------------------------------------------------------------------
     // ----------------------------------------------------------------------
-/*
-    private static final class ApplicationContentResolver extends ContentResolver {
-        private final ActivityThread mMainThread;
+
+   /* private static final class ApplicationContentResolver extends ContentResolver {
+        private final Object mMainThread;
         private final UserHandle mUser;
 
         public ApplicationContentResolver(
-                Context context, ActivityThread mainThread, UserHandle user) {
+                Context context, Object mainThread, UserHandle user) {
             super(context);
             mMainThread = Preconditions.checkNotNull(mainThread);
             mUser = Preconditions.checkNotNull(user);
@@ -2272,13 +2323,15 @@ class ContextI extends Context {
         @Override
         public void appNotRespondingViaProvider(IContentProvider icp) {
             mMainThread.appNotRespondingViaProvider(icp.asBinder());
-        }*/
+        }
 
-        /** @hide */
+        /**
+         * @hide
+         */
 
-        /*
+/*
         protected int resolveUserIdFromAuthority(String auth) {
             return ContentProvider.getUserIdFromAuthority(auth, mUser.getIdentifier());
         }
-        */
+    }*/
 }

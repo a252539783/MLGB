@@ -70,6 +70,7 @@ public class App {
             //invoke(loadedApk.getClass(),loadedApk,"makeApplication",new Class[]{boolean.class,Instrumentation.class},false,null);
             //cc=ContextBase.createActivityContext(mThread,loadedApk);
             //context=cc;
+            context=new ContextBase(context,mThread,loadedApk,null,false);
             loader=new PathClassLoader(apkPath,cc.getApplicationInfo().nativeLibraryDir,ClassLoader.getSystemClassLoader());
             ClassLoader old=c.getClassLoader();
             setField(ClassLoader.class,loader,"parent",old.getParent());
