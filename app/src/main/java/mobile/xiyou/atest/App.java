@@ -61,16 +61,17 @@ public class App {
             Context cc=c.createPackageContext(packageName, CONTEXT_IGNORE_SECURITY);
 
             String apkPath=cc.getPackageResourcePath();
-            info=PkgInfo.getPackageArchiveInfo(apkPath, 1);
+            info=PkgInfo.getPackageArchiveInfo(apkPath,PackageManager.GET_ACTIVITIES|PackageManager.GET_UNINSTALLED_PACKAGES|PackageManager.GET_META_DATA|PackageManager.GET_SHARED_LIBRARY_FILES);
 
 
             //Init
+            info.info.applicationInfo.dataDir="/data/data/"+info.info.packageName+"";
             loadedApk=ContextBase.loadApk(mThread,info.info.applicationInfo);
             //Log.e("xx","xx"+(readField(loadedApk.getClass(),loadedApk,"mPackageName")==null));
             //invoke(loadedApk.getClass(),loadedApk,"makeApplication",new Class[]{boolean.class,Instrumentation.class},false,null);
             //cc=ContextBase.createActivityContext(mThread,loadedApk);
             //context=cc;
-            context=new ContextBase(context,mThread,loadedApk,null,false);
+
             loader=new PathClassLoader(apkPath,cc.getApplicationInfo().nativeLibraryDir,ClassLoader.getSystemClassLoader());
             ClassLoader old=c.getClassLoader();
             setField(ClassLoader.class,loader,"parent",old.getParent());
@@ -81,9 +82,9 @@ public class App {
             packages.put(info.info.packageName,new WeakReference<Object>(loadedApk));
             setField(loadedApk.getClass(),loadedApk,"mClassLoader",loader);
 
-            if (info.info.applicationInfo.name!=null) {
-                application = (Application) loader.loadClass(info.info.applicationInfo.name).newInstance();
-                Log.e("xx","application:"+info.info.applicationInfo.name);
+            if (info.info.applicationInfo.className!=null) {
+                application = (Application) loader.loadClass(info.info.applicationInfo.className).newInstance();
+                Log.e("xx","application:"+info.info.applicationInfo.className);
             }
             else
             application=new Application();
@@ -103,7 +104,7 @@ public class App {
         } catch (InstantiationException e) {
             Log.e("xx",e.toString());
         } catch (InvocationTargetException e) {
-            Log.e("xx",e.getCause().toString());
+            Log.e("xx","in app init:"+e.getCause().toString());
         } catch (PackageManager.NameNotFoundException e) {
             Log.e("xx",e.toString());
         } catch (IllegalAccessException e) {
@@ -192,8 +193,7 @@ public class App {
         return i.getStringExtra("an");
     }
 
-    public void solveIntent(ActivityBase c)
-    {
+    public void solveIntent(ActivityBase c){
         Intent i=c.getIntent();
         if (!appAttached)
             attachApplication(c);
@@ -234,11 +234,12 @@ public class App {
 
     public void attachApplication(Context c)
     {
-        c=context;
         try {
+            context=new ContextBase(c,mThread,loadedApk,this,false);
             Method m = Application.class.getDeclaredMethod("attach", Context.class);
             m.setAccessible(true);
-            m.invoke(application, c);
+            m.invoke(application, context);
+            setField(Application.class,application,"mLoadedApk",loadedApk);
             invoke(Application.class,application,"onCreate",new Class[]{});
             appAttached=true;
             if (loader!=readField(loadedApk.getClass(),loadedApk,"mClassLoader"))
@@ -251,12 +252,11 @@ public class App {
         } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
         } catch (InvocationTargetException e) {
-            Log.e("xx",e.getCause().toString());
+            Log.e("xx","in application attach"+e.getCause().toString());
         }
     }
 
-    public void attachActivity(Activity base,Activity target)
-    {
+    public void attachActivity(Activity base,Activity target){
         try{
             Object thread=readField(Activity.class,base,"mMainThread"),token=readField(Activity.class,base,"mToken"),ident=readField(Activity.class,base,"mIdent"),intent=readField(Activity.class,base,"mIntent"),
                     mLastNonConfigurationInstances=readField(Activity.class,base,"mLastNonConfigurationInstances"),mCurrentConfig=readField(Activity.class,base,"mCurrentConfig"),mReferrer=readField(Activity.class,base,"mReferrer"),
@@ -276,7 +276,7 @@ public class App {
             //m=Activity.class.getDeclaredMethod("attach",Context.class,thread.getClass(), Instrumentation.class, IBinder.class,
              //       int.class,Application.class,Intent.class, ActivityInfo.class,CharSequence.class,Activity.class,String.class,
              //       mLastNonConfigurationInstances.getClass(), Configuration.class,String.class,mVoiceInteractor.getClass());
-            m.invoke(target,base,thread,new PachInstr((Instrumentation) readField(Activity.class,base,"mInstrumentation")),token,(int)ident,application,base.getIntent(),getActInfo(getIntentClassName(base.getIntent())),
+            m.invoke(target,context,thread,new PachInstr((Instrumentation) readField(Activity.class,base,"mInstrumentation")),token,(int)ident,application,base.getIntent(),getActInfo(getIntentClassName(base.getIntent())),
                    "title",null,"id",mLastNonConfigurationInstances,mCurrentConfig,mReferrer,mVoiceInteractor);
 
             //m.invoke(target, new Object[]{base, null, new Instrumentation(), null, 0, getApplication(), base.getIntent(), info.activities[0], "xxx", getParent(), "00", null, null, "", null});
@@ -285,9 +285,9 @@ public class App {
             setField(Activity.class,target,"mWindow", base.getWindow());
             //setField(ContextThemeWrapper.class,target,"mTheme",getTheme());
             //setField(Activity.class,base,"mInstrumentation",new PachInstr(new Instrumentation()));
-        } catch (InvocationTargetException e) {
-            Log.e("xx",e.getCause().toString());
-        } catch (IllegalAccessException e) {
+        }catch (InvocationTargetException e) {
+            Log.e("xx","in acitivity attach:"+e.getCause().toString());
+        }  catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
         }
     }

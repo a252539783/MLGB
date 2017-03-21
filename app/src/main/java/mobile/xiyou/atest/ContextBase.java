@@ -58,7 +58,7 @@ import static mobile.xiyou.atest.Rf.*;
  * Created by admin on 2017/3/2.
  */
 
-public class ContextBase extends Context {
+public class ContextBase extends ContextWrapper {
 
     /*
         r.packageInfo = ActivityThread.getPackageInfoNoCheck(
@@ -297,11 +297,12 @@ class ReceiverRestrictedContext extends ContextWrapper {
     }
 
     private static int selectDefaultTheme(int curTheme, int targetSdkVersion) {
-        return selectSystemTheme(curTheme, targetSdkVersion,
-                com.android.internal.R.style.Theme,
-                com.android.internal.R.style.Theme_Holo,
-                com.android.internal.R.style.Theme_DeviceDefault,
-                com.android.internal.R.style.Theme_DeviceDefault_Light_DarkActionBar);
+        try {
+             return (int)invoke(Class.forName("android.app.ContextImpl"),null,"selectDefaultTheme",new Class[]{int .class,int.class},curTheme,targetSdkVersion);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     /** @hide */
@@ -2042,7 +2043,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
         name = "app_" + name;
         File file = makeFilename(getDataDirFile(), name);
         if (!file.exists()) {
-            file.mkdir();
+            file.mkdirs();
          //   setFilePermissionsFromMode(file.getPath(), mode,
             //          FileUtils.S_IRWXU|FileUtils.S_IRWXG|FileUtils.S_IXOTH);
         }
@@ -2054,21 +2055,28 @@ class ReceiverRestrictedContext extends ContextWrapper {
         return (int)invoke(mUser,"getIdentifier");
     }
 
+    public ContextBase(Context base)
+    {
+        super(base);
+    }
 
     public ContextBase(Context container, Object mainThread,
-                        Object packageInfo,UserHandle user, boolean restricted
+                        Object packageInfo,App app, boolean restricted
                         ){
+        super(container);
         mOuterContext = this;
 
         mMainContext=container;
         mMainThread = mainThread;
         mRestricted = restricted;
 
-        if (user == null) {
-            user = Process.myUserHandle();
+        mUser=null;
+        if (mUser == null) {
+            mUser = Process.myUserHandle();
         }
-        mUser = user;
+        //mUser = null;
 
+        this.app=app;
         mResources=app.getRes();
 
         mPackageInfo = packageInfo;
@@ -2134,6 +2142,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
 
         mBasePackageName=null;
         mOpPackageName=null;
+        //mResources=app.getRes();
     }
 
     void installSystemApplicationInfo(ApplicationInfo info, ClassLoader classLoader) {

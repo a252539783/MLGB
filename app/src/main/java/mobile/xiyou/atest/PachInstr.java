@@ -44,7 +44,7 @@ public class PachInstr extends Instrumentation {
             x=m.invoke(base, who, contextThread, token, target, intent, requestCode, options);
         }catch (InvocationTargetException e)
         {
-            Log.e("xx",e.getCause().toString());
+            Log.e("xx","in startActivity:"+e.getCause().toString());
         } catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());
         } catch (IllegalAccessException e) {

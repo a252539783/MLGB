@@ -55,6 +55,7 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
         //AppManager.get().startApp(this,"xiyou.mobile.android.elisten",0);
         AppManager.get().startApp(this,"com.example.wyz.xiyoug",0);
         //AppManager.get().startApp(this,"com.example.share4_15",0);
+        //AppManager.get().startApp(this,"a.a.zzz",0);
         //startActivity(new Intent(this,ActivityBase.class));
     }
 

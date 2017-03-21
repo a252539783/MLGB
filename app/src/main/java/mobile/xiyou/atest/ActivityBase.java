@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import static mobile.xiyou.atest.Rf.*;
 

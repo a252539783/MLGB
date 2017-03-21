@@ -63,14 +63,14 @@ public class Rf {
     }
 
     public static Object invoke(Class r,Object o,String name,Class []vp,Object ...params)
-    {
+    {Method m=null;
         try {
-            Method m = r.getDeclaredMethod(name,vp);
+            m = r.getDeclaredMethod(name,vp);
             m.setAccessible(true);
             return m.invoke(o,params);
         }catch (InvocationTargetException e)
         {
-            Log.e("xx",e.getCause().toString());
+            Log.e("xx","in"+m.getName()+e.getCause().toString());
         } catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());
         } catch (IllegalAccessException e) {
@@ -80,15 +80,15 @@ public class Rf {
     }
 
     public static Object invoke(Object o,String name,Class []vp,Object ...params)
-    {
+    {Method m=null;
         Class r=o.getClass();
         try {
-            Method m = r.getDeclaredMethod(name,vp);
+            m = r.getDeclaredMethod(name,vp);
             m.setAccessible(true);
             return m.invoke(o,params);
         }catch (InvocationTargetException e)
         {
-            Log.e("xx",e.getCause().toString());
+            Log.e("xx","in"+m.getName()+e.getCause().toString());
         } catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());
         } catch (IllegalAccessException e) {
@@ -100,13 +100,14 @@ public class Rf {
     public static Object invoke(Object o,String name)
     {
         Class r=o.getClass();
+        Method m=null;
         try {
-            Method m = r.getDeclaredMethod(name,new Class[]{});
+            m = r.getDeclaredMethod(name,new Class[]{});
             m.setAccessible(true);
             return m.invoke(o);
         }catch (InvocationTargetException e)
         {
-            Log.e("xx",e.getCause().toString());
+            Log.e("xx","in"+m.getName()+e.getCause().toString());
         } catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());
         } catch (IllegalAccessException e) {
@@ -116,14 +117,14 @@ public class Rf {
     }
 
     public static Object invoke(Class r,Object o,String name)
-    {
+    {Method m=null;
         try {
-            Method m = r.getDeclaredMethod(name,new Class[]{});
+            m = r.getDeclaredMethod(name,new Class[]{});
             m.setAccessible(true);
             return m.invoke(o);
         }catch (InvocationTargetException e)
         {
-            Log.e("xx",e.getCause().toString());
+            Log.e("xx","in"+m.getName()+e.getCause().toString());
         } catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());
         } catch (IllegalAccessException e) {
