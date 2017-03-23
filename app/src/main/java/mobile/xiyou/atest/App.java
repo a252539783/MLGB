@@ -7,6 +7,7 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -63,7 +64,8 @@ public class App {
             String apkPath=cc.getPackageResourcePath();
             info=PkgInfo.getPackageArchiveInfo(apkPath,PackageManager.GET_ACTIVITIES|PackageManager.GET_UNINSTALLED_PACKAGES|PackageManager.GET_META_DATA|PackageManager.GET_SHARED_LIBRARY_FILES);
 
-
+            ApplicationInfo ai=(ApplicationInfo) readField(info.pkg.getClass(),info.pkg,"applicationInfo");
+            Log.e("xx",readField(ApplicationInfo.class,ai,"primaryCpuAbi").toString());
             //Init
             info.info.applicationInfo.dataDir="/data/data/"+info.info.packageName+"";
             loadedApk=ContextBase.loadApk(mThread,info.info.applicationInfo);

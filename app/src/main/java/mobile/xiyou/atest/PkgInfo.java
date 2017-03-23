@@ -19,10 +19,12 @@ public class PkgInfo {
 
     public PackageInfo info;
     public String mainClass="";
+    public Object pkg;
 
-    public PkgInfo(PackageInfo i,String main) {
+    public PkgInfo(PackageInfo i,String main,Object pkg) {
         this.info=i;
         this.mainClass=main;
+        this.pkg=pkg;
     }
 
     public static PkgInfo getPackageArchiveInfo(String archiveFilePath, int flags) {
@@ -59,7 +61,7 @@ public class PkgInfo {
             state = Class.forName("android.content.pm.PackageUserState").newInstance();
             generate=Parser.getDeclaredMethod("generatePackageInfo",pkg.getClass(),int[].class,int .class,long.class,long.class,Set.class,state.getClass());
             PackageInfo i=(PackageInfo) generate.invoke(null,new Object[]{pkg, null, flags, 0, 0, null, state});
-            return new PkgInfo(i,main);
+            return new PkgInfo(i,main,pkg);
         }
         catch (Exception e) {
             Log.e("xx",e.toString());
