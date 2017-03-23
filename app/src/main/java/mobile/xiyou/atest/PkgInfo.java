@@ -70,4 +70,97 @@ public class PkgInfo {
         return null;
     }
 
+    /*               get abi
+    final File nativeLibraryRoot = new File(nativeLibraryRootStr);
+
+            // Null out the abis so that they can be recalculated.
+            pkg.applicationInfo.primaryCpuAbi = null;
+            pkg.applicationInfo.secondaryCpuAbi = null;
+            if (isMultiArch(pkg.applicationInfo)) {
+                // Warn if we've set an abiOverride for multi-lib packages..
+                // By definition, we need to copy both 32 and 64 bit libraries for
+                // such packages.
+                if (pkg.cpuAbiOverride != null
+                        && !NativeLibraryHelper.CLEAR_ABI_OVERRIDE.equals(pkg.cpuAbiOverride)) {
+                    Slog.w(TAG, "Ignoring abiOverride for multi arch application.");
+                }
+
+                int abi32 = PackageManager.NO_NATIVE_LIBRARIES;
+                int abi64 = PackageManager.NO_NATIVE_LIBRARIES;
+                if (Build.SUPPORTED_32_BIT_ABIS.length > 0) {
+                    if (extractLibs) {
+                        abi32 = NativeLibraryHelper.copyNativeBinariesForSupportedAbi(handle,
+                                nativeLibraryRoot, Build.SUPPORTED_32_BIT_ABIS,
+                                useIsaSpecificSubdirs);
+                    } else {
+                        abi32 = NativeLibraryHelper.findSupportedAbi(handle, Build.SUPPORTED_32_BIT_ABIS);
+                    }
+                }
+
+                maybeThrowExceptionForMultiArchCopy(
+                        "Error unpackaging 32 bit native libs for multiarch app.", abi32);
+
+                if (Build.SUPPORTED_64_BIT_ABIS.length > 0) {
+                    if (extractLibs) {
+                        abi64 = NativeLibraryHelper.copyNativeBinariesForSupportedAbi(handle,
+                                nativeLibraryRoot, Build.SUPPORTED_64_BIT_ABIS,
+                                useIsaSpecificSubdirs);
+                    } else {
+                        abi64 = NativeLibraryHelper.findSupportedAbi(handle, Build.SUPPORTED_64_BIT_ABIS);
+                    }
+                }
+
+                maybeThrowExceptionForMultiArchCopy(
+                        "Error unpackaging 64 bit native libs for multiarch app.", abi64);
+
+                if (abi64 >= 0) {
+                    pkg.applicationInfo.primaryCpuAbi = Build.SUPPORTED_64_BIT_ABIS[abi64];
+                }
+
+                if (abi32 >= 0) {
+                    final String abi = Build.SUPPORTED_32_BIT_ABIS[abi32];
+                    if (abi64 >= 0) {
+                        pkg.applicationInfo.secondaryCpuAbi = abi;
+                    } else {
+                        pkg.applicationInfo.primaryCpuAbi = abi;
+                    }
+                }
+            } else {
+                String[] abiList = (cpuAbiOverride != null) ?
+                        new String[] { cpuAbiOverride } : Build.SUPPORTED_ABIS;
+
+                // Enable gross and lame hacks for apps that are built with old
+                // SDK tools. We must scan their APKs for renderscript bitcode and
+                // not launch them if it's present. Don't bother checking on devices
+                // that don't have 64 bit support.
+                boolean needsRenderScriptOverride = false;
+                if (Build.SUPPORTED_64_BIT_ABIS.length > 0 && cpuAbiOverride == null &&
+                        NativeLibraryHelper.hasRenderscriptBitcode(handle)) {
+                    abiList = Build.SUPPORTED_32_BIT_ABIS;
+                    needsRenderScriptOverride = true;
+                }
+
+                final int copyRet;
+                if (extractLibs) {
+                    copyRet = NativeLibraryHelper.copyNativeBinariesForSupportedAbi(handle,
+                            nativeLibraryRoot, abiList, useIsaSpecificSubdirs);
+                } else {
+                    copyRet = NativeLibraryHelper.findSupportedAbi(handle, abiList);
+                }
+
+                if (copyRet < 0 && copyRet != PackageManager.NO_NATIVE_LIBRARIES) {
+                    throw new PackageManagerException(INSTALL_FAILED_INTERNAL_ERROR,
+                            "Error unpackaging native libs for app, errorCode=" + copyRet);
+                }
+
+                if (copyRet >= 0) {
+                    pkg.applicationInfo.primaryCpuAbi = abiList[copyRet];
+                } else if (copyRet == PackageManager.NO_NATIVE_LIBRARIES && cpuAbiOverride != null) {
+                    pkg.applicationInfo.primaryCpuAbi = cpuAbiOverride;
+                } else if (needsRenderScriptOverride) {
+                    pkg.applicationInfo.primaryCpuAbi = abiList[0];
+                }
+            }
+     */
+
 }

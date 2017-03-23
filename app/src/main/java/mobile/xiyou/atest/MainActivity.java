@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -25,6 +26,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
+
+import static android.content.pm.PackageManager.*;
+import static mobile.xiyou.atest.Rf.*;
 
 public class MainActivity extends Activity implements Runnable,View.OnClickListener {
 
@@ -47,6 +51,9 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         findViewById(R.id.bbb).setOnClickListener(this);
+
+        ApplicationInfo ai=getPackageManager().getInstalledApplications(GET_SHARED_LIBRARY_FILES).get(0);
+        Log.e("xx",readField(ai,"primaryCpuAbi").toString());
     }
 
 
