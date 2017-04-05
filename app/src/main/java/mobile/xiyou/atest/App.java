@@ -64,8 +64,8 @@ public class App {
             String apkPath=cc.getPackageResourcePath();
             info=PkgInfo.getPackageArchiveInfo(apkPath,PackageManager.GET_ACTIVITIES|PackageManager.GET_UNINSTALLED_PACKAGES|PackageManager.GET_META_DATA|PackageManager.GET_SHARED_LIBRARY_FILES);
 
-            ApplicationInfo ai=(ApplicationInfo) readField(info.pkg.getClass(),info.pkg,"applicationInfo");
-            Log.e("xx",readField(ApplicationInfo.class,ai,"primaryCpuAbi").toString());
+//            ApplicationInfo ai=(ApplicationInfo) readField(info.pkg.getClass(),info.pkg,"applicationInfo");
+//            Log.e("xx",readField(ApplicationInfo.class,ai,"primaryCpuAbi").toString());
             //Init
             info.info.applicationInfo.dataDir="/data/data/"+info.info.packageName+"";
             loadedApk=ContextBase.loadApk(mThread,info.info.applicationInfo);
@@ -285,6 +285,7 @@ public class App {
             //setField(Activity.class,target,"mWindow", readField(Activity.class,base,"mWindow"));
             //base.getWindow().setUiOptions(getActInfo(getIntentClassName(base.getIntent())).uiOptions);
             setField(Activity.class,target,"mWindow", base.getWindow());
+            setField(Activity.class,target,"mFragments",readField(Activity.class,base,"mFragments"));
             //setField(ContextThemeWrapper.class,target,"mTheme",getTheme());
             //setField(Activity.class,base,"mInstrumentation",new PachInstr(new Instrumentation()));
         }catch (InvocationTargetException e) {

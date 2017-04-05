@@ -351,12 +351,12 @@ class ReceiverRestrictedContext extends ContextWrapper {
 
 
     public String getBasePackageName() {
-        return mBasePackageName != null ? mBasePackageName : getPackageName();
+        return mMainContext.getPackageName();
     }
 
 
     public String getOpPackageName() {
-        return mOpPackageName != null ? mOpPackageName : getBasePackageName();
+        return mMainContext.getPackageName();
     }
 
     @Override

@@ -9,4 +9,10 @@ import android.util.Log;
  */
 
 public class TestActivity extends ActivityBase {
+
+    public TestActivity()
+    {
+        super();
+
+    }
 }

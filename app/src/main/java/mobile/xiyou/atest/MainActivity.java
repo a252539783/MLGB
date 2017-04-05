@@ -26,6 +26,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import static android.content.pm.PackageManager.*;
 import static mobile.xiyou.atest.Rf.*;
@@ -52,8 +53,9 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
         setContentView(R.layout.activity_main);
         findViewById(R.id.bbb).setOnClickListener(this);
 
-        ApplicationInfo ai=getPackageManager().getInstalledApplications(GET_SHARED_LIBRARY_FILES).get(0);
-        Log.e("xx",readField(ai,"primaryCpuAbi").toString());
+        //Toast.makeText(activity, "", Toast.LENGTH_SHORT).show();
+//        ApplicationInfo ai=getPackageManager().getInstalledApplications(GET_SHARED_LIBRARY_FILES).get(0);
+//        Log.e("xx",readField(ai,"primaryCpuAbi").toString());
     }
 
 
@@ -61,10 +63,11 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
     @Override
     public void onClick(View v) {
         //AppManager.get().startApp(this,"xiyou.mobile.android.elisten",0);
-        AppManager.get().startApp(this,"com.example.wyz.xiyoug",0);
-        //AppManager.get().startApp(this,"com.example.share4_15",0);
+        //AppManager.get().startApp(this,"com.example.wyz.xiyoug",0);
+        AppManager.get().startApp(this,"com.example.share4_15",0);
         //AppManager.get().startApp(this,"a.a.zzz",0);
-        //startActivity(new Intent(this,ActivityBase.class));
+        //AppManager.get().startApp(this,"com.example.miaojie.login_test1",0);
+        //startActivity(new Intent(this,TestActivity.class));
     }
 
     @Override

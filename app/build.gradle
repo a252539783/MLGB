@@ -12,7 +12,7 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         ndk {
-            abiFilters "armeabi", "armeabi-v7a", "x86", "mips"
+            abiFilters 'armeabi'
         }
     }
     buildTypes {
@@ -23,6 +23,12 @@ android {
     }
     dexOptions {
         jumboMode = true
+    }
+
+    externalNativeBuild {
+        cmake {                                      //指定编译工具为cmake
+            path "CMakeLists.txt"     //此处路径是相对于app主目录的路径
+        }
     }
 }
 
