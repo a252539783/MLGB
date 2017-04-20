@@ -70,9 +70,13 @@ public class Rf {
             return m.invoke(o,params);
         }catch (InvocationTargetException e)
         {
-            Log.e("xx","in"+m.getName()+e.getCause().toString());
+            Throwable ee=e.getCause();
+            while (ee!=null) {
+                Log.e("xx", "in " + m.getName() +":"+ ee.toString());
+                ee=ee.getCause();
+            }
         } catch (NoSuchMethodException e) {
-            Log.e("xx",e.toString());
+            Log.e("xx",r.toString()+":"+e.toString());
         } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
         }
@@ -90,7 +94,7 @@ public class Rf {
         {
             Log.e("xx","in"+m.getName()+e.getCause().toString());
         } catch (NoSuchMethodException e) {
-            Log.e("xx",e.toString());
+            Log.e("xx",r.toString()+":"+e.toString());
         } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
         }
@@ -109,7 +113,7 @@ public class Rf {
         {
             Log.e("xx","in"+m.getName()+e.getCause().toString());
         } catch (NoSuchMethodException e) {
-            Log.e("xx",e.toString());
+            Log.e("xx",r.toString()+":"+e.toString());
         } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
         }
@@ -126,7 +130,7 @@ public class Rf {
         {
             Log.e("xx","in"+m.getName()+e.getCause().toString());
         } catch (NoSuchMethodException e) {
-            Log.e("xx",e.toString());
+            Log.e("xx",r.toString()+":"+e.toString());
         } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
         }

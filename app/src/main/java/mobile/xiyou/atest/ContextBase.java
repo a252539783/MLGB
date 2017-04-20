@@ -792,7 +792,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
 
     @Override
     public void startActivity(Intent intent, Bundle options) {
-        intent=AppManager.get().getApp(0).startActivityIntent(AppManager.get().getContext(),intent.getComponent().getClassName());
+        intent=app.startActivityIntent(intent.getComponent().getClassName());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             mMainContext.startActivity(intent,options);
         }
@@ -800,7 +800,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
 
     /** @hide */
     public void startActivityAsUser(Intent intent, Bundle options, UserHandle user) {
-        intent=AppManager.get().getApp(0).startActivityIntent(AppManager.get().getContext(),intent.getComponent().getClassName());
+        intent=app.startActivityIntent(intent.getComponent().getClassName());
         invoke(getImpl(mMainContext).getClass(),mMainContext,"startActivityAsUser",new Class[]{Intent.class,Bundle.class,UserHandle.class},
                 intent,options,user);
     }
@@ -1430,7 +1430,12 @@ class ReceiverRestrictedContext extends ContextWrapper {
 
     @Override
     public ComponentName startService(Intent service) {     //undefined
-        return mMainContext.startService(service);
+        service.putExtra("sn",service.getComponent().getClassName());
+        service.setComponent(new ComponentName(mMainContext,TestService.class));
+        //service=new Intent(mMainContext,TestService.class);
+        ComponentName cn=mMainContext.startService(service);
+        Log.e("xx","startSer"+cn.toString());
+        return cn;
     }
 
     @Override
@@ -1502,6 +1507,9 @@ class ReceiverRestrictedContext extends ContextWrapper {
     @Override
     public boolean bindService(Intent service, ServiceConnection conn,
                                int flags) {
+
+        service.putExtra("sn",service.getComponent().getClassName());
+        service.setComponent(new ComponentName(mMainContext,TestService.class));
         return mMainContext.bindService(service, conn, flags);
         /*
         warnIfCallingFromSystemProcess();

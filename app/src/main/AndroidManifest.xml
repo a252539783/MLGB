@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 
     <application
         android:allowBackup="true"
@@ -16,6 +17,7 @@
         android:name=".MainApp"
         android:theme="@android:style/Theme.Holo.Light">
         <activity
+
             android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,16 +27,51 @@
         <activity
             android:name=".TestActivity"
             />
-        <activity android:name=".ActivityBase$A1"
+        <activity
+            android:process="a.a.a1"
+            android:name=".ActivityBase$A1"
+            android:label="a1"
+            android:taskAffinity="a.a.a1"
+            android:allowTaskReparenting="true"
             />
         <activity android:name=".ActivityBase$A2"
+            android:process=":a2"
             />
         <activity android:name=".ActivityBase$A3"
+            android:process=":a3"
             />
         <activity android:name=".ActivityBase$A4"
+            android:process=":a4"
             />
         <activity android:name=".ActivityBase$A5"
+            android:process=":a5"
             />
+        
+        <service android:name=".TestService"/>
+
+        <service android:name=".Service1"
+            />
+
+        <service android:name=".ServiceBase$Service1"
+            android:process=":s1"
+            />
+        <service android:name=".ServiceBase$Service2"
+            android:process=":s2"
+            />
+
+        <service android:name=".ServiceBase$Service3"
+            android:process=":s3"
+            />
+        <service android:name=".ServiceBase$Service4"
+            android:process=":s4"
+            />
+
+        <service android:name=".ServiceBase$Service5"
+            android:process=":s5"
+            />
+
+        <service android:name=".AppManagerService"
+            android:process=":manager"/>
     </application>
 
 </manifest>

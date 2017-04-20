@@ -30,6 +30,7 @@ import static mobile.xiyou.atest.Rf.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Created by admin on 2017/3/1.
@@ -43,7 +44,7 @@ public class ActivityBase extends Activity{
 
     public ActivityBase()
     {
-        app=AppManager.get().getApp(0);
+
     }
 
     public void setRealActivity(Activity a)
@@ -56,6 +57,7 @@ public class ActivityBase extends Activity{
         try {
             Method m=ActivityMethods.get(method);
             m.setAccessible(true);
+            Log.e("xx","invoke "+realActivity.toString()+":"+m.getName());
             return m.invoke(realActivity,params);
         } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
@@ -107,15 +109,25 @@ public class ActivityBase extends Activity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        app=((MainApp)getApplication()).getApp();
+        app.solveIntent(this);
+
         id=getIntent().getIntExtra("id",0);
 
-        app.solveIntent(this);
-        app.newTheme(app.getActInfo(App.getIntentClassName(getIntent())).theme,id);
+        //app.solveIntent(this);
+        app.newTheme(app.getActInfo(app.getIntentClassName(getIntent())).theme,id);
         setField(ContextThemeWrapper.class,realActivity,"mTheme",app.getTheme(id));
 
         invoke(ActivityMethods.ONCREATE,savedInstanceState);
         setField(Activity.class,realActivity,"mParent",null);
         super.onCreate(savedInstanceState);
+
+        List<ActivityManager.RecentTaskInfo> list=((ActivityManager)getSystemService(ACTIVITY_SERVICE)).getRecentTasks(20,0);
+        Log.e("xx",list.size()+"");
+        for (int i=0;i<list.size();i++)
+        {
+            Log.e("xx",list.get(i).affiliatedTaskId+"");
+        }
     }
 
     @Override
@@ -124,6 +136,11 @@ public class ActivityBase extends Activity{
         if (x!=null)
             return (boolean)x;
         return false;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.e("xx","onresult");
     }
 
     @Override
@@ -397,6 +414,7 @@ public class ActivityBase extends Activity{
         public static final int ONWINDOWATTRIBUTESCHANGED=32;
         public static final int ONWINDOWFOCUSCHANGED=33;
         public static final int ONCREATEVIEW2=34;
+        public static final int ATTACHBASE=35;
 
         private Method []methods;
         private static ActivityMethods am=new ActivityMethods();
@@ -417,7 +435,7 @@ public class ActivityBase extends Activity{
                     "onMenuItemSelected","onMenuOpened","onOptionsItemSelected","onOptionsMenuClosed",
                     "onPanelClosed","onPrepareOptionsMenu","onPreparePanel","onRetainNonConfigurationInstance",
                     "onSearchRequested","onTouchEvent","onTrackballEvent","onUserInteraction",
-                    "onWindowAttributesChanged","onWindowFocusChanged","onCreateView"};
+                    "onWindowAttributesChanged","onWindowFocusChanged","onCreateView","attachBaseContext"};
             params=new Object[]{new Class[]{Bundle.class},new Class[]{int.class,Menu.class},new Class[]{Menu.class},
                     new Class[]{},new Class[]{},new Class[]{},new Class[]{},new Class[]{},new Class[]{},
                     new Class[]{MenuItem.class},new Class[]{Menu.class},new Class[]{ContextMenu.class,View.class, ContextMenu.ContextMenuInfo.class},
@@ -427,7 +445,7 @@ public class ActivityBase extends Activity{
                     new Class[]{int.class,MenuItem.class},new Class[]{int.class,Menu.class},new Class[]{MenuItem.class},new Class[]{Menu.class},
                     new Class[]{int.class,Menu.class},new Class[]{Menu.class},new Class[]{int.class,View.class,Menu.class},new Class[]{},
                     new Class[]{},new Class[]{MotionEvent.class},new Class[]{MotionEvent.class},new Class[]{},
-                    new Class[]{WindowManager.LayoutParams.class},new Class[]{boolean.class},new Class[]{View.class,String.class,Context.class,AttributeSet.class},};
+                    new Class[]{WindowManager.LayoutParams.class},new Class[]{boolean.class},new Class[]{View.class,String.class,Context.class,AttributeSet.class},new Class[]{Context.class}};
             methods=new Method[names.length];
 
             for (int i=0;i<methods.length;i++)
@@ -435,7 +453,7 @@ public class ActivityBase extends Activity{
                 try {
                     methods[i]=Activity.class.getDeclaredMethod(names[i],(Class[])params[i]);
                 } catch (NoSuchMethodException e) {
-                    Log.e("xx",e.toString());
+                    Log.e("xx","activity:"+e.toString());
                 }
             }
         }
@@ -447,23 +465,23 @@ public class ActivityBase extends Activity{
         }
     }
 
-    public class A1 extends ActivityBase
+    public static class A1 extends ActivityBase
     {
     }
 
-    public class A2 extends ActivityBase
+    public static class A2 extends ActivityBase
     {
     }
 
-    public class A3 extends ActivityBase
+    public static class A3 extends ActivityBase
     {
     }
 
-    public class A4 extends ActivityBase
+    public static class A4 extends ActivityBase
     {
     }
 
-    public class A5 extends ActivityBase
+    public static class A5 extends ActivityBase
     {
     }
 }

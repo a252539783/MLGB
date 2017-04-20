@@ -4,25 +4,32 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Application;
 import android.app.Instrumentation;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.IBinder;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
+import android.view.LayoutInflater;
+import android.view.Window;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import dalvik.system.PathClassLoader;
@@ -47,23 +54,40 @@ public class App {
     private AssetManager am;
     private Resources.Theme theme;
     private HashMap<Integer,Resources.Theme> themes;
-    private Context context;
-    private int id=0;
-    private boolean appAttached=false;
+    private Context context,mcontext;
+    private int id=0,appid=0;
+    private boolean appAttached=false,taskAdded=false;
     private Object mThread=null,loadedApk=null;
+    private Class mActivityClass=null;
 
-    public App(Context c,String packageName)
+    public App(Context c,String packageName,int appid)
     {
+        this.appid=appid;
+        mcontext=c;
         context=c;
         defaultLoader=c.getClassLoader();
         try {
+            mActivityClass=Class.forName("mobile.xiyou.atest.ActivityBase$A"+(appid+1));
             mThread=invoke(Class.forName("android.app.ActivityThread"),null,"currentActivityThread",new Class[]{});
 
             Context cc=c.createPackageContext(packageName, CONTEXT_IGNORE_SECURITY);
 
             String apkPath=cc.getPackageResourcePath();
-            info=PkgInfo.getPackageArchiveInfo(apkPath,PackageManager.GET_ACTIVITIES|PackageManager.GET_UNINSTALLED_PACKAGES|PackageManager.GET_META_DATA|PackageManager.GET_SHARED_LIBRARY_FILES);
+            info=PkgInfo.getPackageArchiveInfo(apkPath,PackageManager.GET_ACTIVITIES|PackageManager.GET_META_DATA|PackageManager.GET_SHARED_LIBRARY_FILES);
+            info.info=c.getPackageManager().getPackageInfo(packageName,PackageManager.GET_ACTIVITIES);
+            Intent i=new Intent(Intent.ACTION_MAIN, null);
+            i.addCategory(Intent.CATEGORY_LAUNCHER);
+            List<ResolveInfo> a=c.getPackageManager().queryIntentActivities(i,0);
+            for (int ii=0;ii<a.size();ii++)
+            {if (a.get(ii).activityInfo!=null) {
 
+
+                if (a.get(ii).activityInfo.packageName.equals(packageName)) {
+                    info.mainClass = a.get(ii).activityInfo.name;
+                    Log.e("xx", a.get(ii).activityInfo.name.toString());
+                }
+            }
+            }
 //            ApplicationInfo ai=(ApplicationInfo) readField(info.pkg.getClass(),info.pkg,"applicationInfo");
 //            Log.e("xx",readField(ApplicationInfo.class,ai,"primaryCpuAbi").toString());
             //Init
@@ -181,18 +205,34 @@ public class App {
         return id;
     }
 
-    public Intent startActivityIntent(Context c,String name)
+    public Intent startActivityIntent(String name)
     {
         id++;
-        Intent i=new Intent(c,TestActivity.class);
+        Intent i=new Intent(mcontext,mActivityClass);
+        //i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         i.putExtra("an",name);
         i.putExtra("id",id);
         return i;
     }
 
-    public static String getIntentClassName(Intent i)
+    public Intent startActivityIntent(Intent i)
     {
-        return i.getStringExtra("an");
+
+        if (i.getComponent()==null)
+            return i;
+        id++;
+        //Intent i=new Intent(intent);
+
+        i.putExtra("an",i.getComponent().getClassName());
+        i.setComponent(new ComponentName(mcontext,mActivityClass));
+        i.putExtra("id",id);
+        return i;
+    }
+
+    public String getIntentClassName(Intent i)
+    {
+        String r=i.getStringExtra("an");
+        return r!=null?r:info.mainClass;
     }
 
     public void solveIntent(ActivityBase c){
@@ -200,18 +240,33 @@ public class App {
         if (!appAttached)
             attachApplication(c);
         String x;
-        if ((x=i.getStringExtra(EXTRA_TARGET_ACTIVITY))!=null) {
-            Activity a=getActivity(x);
-            c.setRealActivity(a);
-            attachActivity(c,a);
+        x=i.getStringExtra(EXTRA_TARGET_ACTIVITY);
+        if (x==null)
+            x=getInfo().mainClass;
+
+        Activity a=getActivity(x);
+        c.setRealActivity(a);
+        attachActivity(c,a);
+    }
+
+    public List getAppTask()
+    {
+
+        Object o=null;
+        try {
+            o=invoke(Class.forName("android.app.ActivityManagerNative"),null,"getDefault");
+            o=invoke(o,"getAppTasks",new Class[]{String.class},"com.android.systemui");
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
+        return (List)o;
     }
 
     public Activity getActivity(String name)
     {
         try {
-            ClassLoader l=(ClassLoader) invoke(loadedApk.getClass(),loadedApk,"getClassLoader",new Class[]{});
-            //l=context.getClassLoader();
+            PathClassLoader l=(PathClassLoader) invoke(loadedApk.getClass(),loadedApk,"getClassLoader",new Class[]{});
             return (Activity) l.loadClass(name).newInstance();
         } catch (InstantiationException e) {
             Log.e("xx",e.toString());
@@ -244,11 +299,7 @@ public class App {
             setField(Application.class,application,"mLoadedApk",loadedApk);
             invoke(Application.class,application,"onCreate",new Class[]{});
             appAttached=true;
-            if (loader!=readField(loadedApk.getClass(),loadedApk,"mClassLoader"))
-            {
-                //loader=defaultLoader;
-                Log.e("xx","change");
-            }
+
         }catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());
         } catch (IllegalAccessException e) {
@@ -260,6 +311,7 @@ public class App {
 
     public void attachActivity(Activity base,Activity target){
         try{
+            Log.e("xx","attach activity:"+target.getClass().getName());
             Object thread=readField(Activity.class,base,"mMainThread"),token=readField(Activity.class,base,"mToken"),ident=readField(Activity.class,base,"mIdent"),intent=readField(Activity.class,base,"mIntent"),
                     mLastNonConfigurationInstances=readField(Activity.class,base,"mLastNonConfigurationInstances"),mCurrentConfig=readField(Activity.class,base,"mCurrentConfig"),mReferrer=readField(Activity.class,base,"mReferrer"),
                     mVoiceInteractor=readField(Activity.class,base,"mVoiceInteractor");
@@ -278,13 +330,19 @@ public class App {
             //m=Activity.class.getDeclaredMethod("attach",Context.class,thread.getClass(), Instrumentation.class, IBinder.class,
              //       int.class,Application.class,Intent.class, ActivityInfo.class,CharSequence.class,Activity.class,String.class,
              //       mLastNonConfigurationInstances.getClass(), Configuration.class,String.class,mVoiceInteractor.getClass());
-            m.invoke(target,context,thread,new PachInstr((Instrumentation) readField(Activity.class,base,"mInstrumentation")),token,(int)ident,application,base.getIntent(),getActInfo(getIntentClassName(base.getIntent())),
+            m.invoke(target,context,thread,new PachInstr((Instrumentation) readField(Activity.class,base,"mInstrumentation"),this),token,(int)ident,application,base.getIntent(),getActInfo(getIntentClassName(base.getIntent())),
                    "title",null,"id",mLastNonConfigurationInstances,mCurrentConfig,mReferrer,mVoiceInteractor);
 
             //m.invoke(target, new Object[]{base, null, new Instrumentation(), null, 0, getApplication(), base.getIntent(), info.activities[0], "xxx", getParent(), "00", null, null, "", null});
             //setField(Activity.class,target,"mWindow", readField(Activity.class,base,"mWindow"));
             //base.getWindow().setUiOptions(getActInfo(getIntentClassName(base.getIntent())).uiOptions);
-            setField(Activity.class,target,"mWindow", base.getWindow());
+            Window window=base.getWindow();
+            setField(Activity.class,target,"mWindow", window);
+            window.setCallback(target);
+            setField(Window.class,window,"mContext",target);
+            setField(Window.class,window,"mFeatures",window.getDefaultFeatures(target));
+            setField(Window.class,window,"mLocalFeatures",window.getDefaultFeatures(target));
+            setField(window,"mLayoutInflater", LayoutInflater.from(target));
             setField(Activity.class,target,"mFragments",readField(Activity.class,base,"mFragments"));
             //setField(ContextThemeWrapper.class,target,"mTheme",getTheme());
             //setField(Activity.class,base,"mInstrumentation",new PachInstr(new Instrumentation()));

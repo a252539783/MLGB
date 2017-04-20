@@ -27,17 +27,20 @@ import java.lang.reflect.Method;
 public class PachInstr extends Instrumentation {
 
     private Instrumentation base;
+    private App app;
 
-    public PachInstr(Instrumentation x)
+    public PachInstr(Instrumentation x,App app)
     {
         base=x;
+        this.app=app;
     }
 
     public ActivityResult execStartActivity(
             Context who, IBinder contextThread, IBinder token, Activity target,
             Intent intent, int requestCode, Bundle options) {
-        intent=AppManager.get().getApp(0).startActivityIntent(AppManager.get().getContext(),intent.getComponent().getClassName());
 
+        intent=app.startActivityIntent(intent);
+        Log.e("xx","start "+intent.getComponent()+":"+app.getIntentClassName(intent));
         Object x=null;
         try {
             Method m = Instrumentation.class.getDeclaredMethod("execStartActivity", Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class, int.class, Bundle.class);
