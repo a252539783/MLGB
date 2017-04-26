@@ -18,6 +18,8 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
@@ -36,6 +38,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static android.content.pm.PackageManager.*;
 import static mobile.xiyou.atest.Rf.*;
@@ -46,8 +49,8 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
         super();
     }
 
-    TextView test;
-    private static boolean started=false;
+    Button test;
+    private static boolean started=true;
 
     private Resources res;
     private AssetManager am;
@@ -64,8 +67,10 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button a= (Button)findViewById(R.id.bbb);
+        test=a;
         a.setOnClickListener(this);
         a.setText(""+getTaskId());
+        Log.e("xx","onCreate");
 
         if (started) {
             sc = new ServiceConnection() {
@@ -83,7 +88,7 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
         }else
         {
             Intent i=new Intent(this,MainActivity.class);
-            i.setFlags(Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS|Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+            i.setFlags(Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS);
             startActivity(i);
             started=true;
         }
@@ -91,13 +96,11 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
 
     @Override
     protected void onPause() {
-        if (started)
         super.onPause();
     }
 
     @Override
     protected void onResume() {
-        if (started)
         super.onResume();
     }
 
@@ -109,9 +112,12 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        try {
-            //ams.startApp("com.teslacoilsw.launcher");
-            ams.startApp("com.example.share4_15");
+
+
+       try {
+            ams.startApp("com.example.wyz.xiyoug");
+//           ams.startApp("com.example.share4_15");
+            //ams.startApp("com.tencent.mobileqq");
         } catch (RemoteException e) {
             e.printStackTrace();
             Log.e("xx",e.toString());

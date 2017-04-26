@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.REORDER_TASKS"/>
 
     <application
         android:allowBackup="true"
@@ -17,7 +18,7 @@
         android:name=".MainApp"
         android:theme="@android:style/Theme.Holo.Light">
         <activity
-
+            android:relinquishTaskIdentity="true"
             android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,13 +27,14 @@
         </activity>
         <activity
             android:name=".TestActivity"
+            android:taskAffinity=":xx"
+            android:allowTaskReparenting="false"
             />
         <activity
-            android:process="a.a.a1"
+            android:process=":a1"
             android:name=".ActivityBase$A1"
+            android:taskAffinity=":a1"
             android:label="a1"
-            android:taskAffinity="a.a.a1"
-            android:allowTaskReparenting="true"
             />
         <activity android:name=".ActivityBase$A2"
             android:process=":a2"
@@ -53,21 +55,21 @@
             />
 
         <service android:name=".ServiceBase$Service1"
-            android:process=":s1"
+            android:process=":a1"
             />
         <service android:name=".ServiceBase$Service2"
-            android:process=":s2"
+            android:process=":a2"
             />
 
         <service android:name=".ServiceBase$Service3"
-            android:process=":s3"
+            android:process=":a3"
             />
         <service android:name=".ServiceBase$Service4"
-            android:process=":s4"
+            android:process=":a4"
             />
 
         <service android:name=".ServiceBase$Service5"
-            android:process=":s5"
+            android:process=":a5"
             />
 
         <service android:name=".AppManagerService"

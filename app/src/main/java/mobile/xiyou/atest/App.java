@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Application;
 import android.app.Instrumentation;
+import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -43,8 +44,9 @@ import static mobile.xiyou.atest.Rf.*;
 
 public class App {
 
-    public static final String EXTRA_TARGET_ACTIVITY="an";
+    public static final String EXTRA_TARGET_CLASS="an";
     public static final String EXTRA_ID="id";
+    public static final String EXTRA_OLD_INTENT="old";
 
     private PkgInfo info;
     private ClassLoader loader,defaultLoader;
@@ -58,7 +60,7 @@ public class App {
     private int id=0,appid=0;
     private boolean appAttached=false,taskAdded=false;
     private Object mThread=null,loadedApk=null;
-    private Class mActivityClass=null;
+    private Class mActivityClass=null,mServiceClass=null;
 
     public App(Context c,String packageName,int appid)
     {
@@ -68,6 +70,7 @@ public class App {
         defaultLoader=c.getClassLoader();
         try {
             mActivityClass=Class.forName("mobile.xiyou.atest.ActivityBase$A"+(appid+1));
+            mServiceClass=Class.forName("mobile.xiyou.atest.ServiceBase$Service"+(appid+1));
             mThread=invoke(Class.forName("android.app.ActivityThread"),null,"currentActivityThread",new Class[]{});
 
             Context cc=c.createPackageContext(packageName, CONTEXT_IGNORE_SECURITY);
@@ -210,8 +213,8 @@ public class App {
         id++;
         Intent i=new Intent(mcontext,mActivityClass);
         //i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        i.putExtra("an",name);
-        i.putExtra("id",id);
+        i.putExtra(EXTRA_TARGET_CLASS,name);
+        i.putExtra(EXTRA_ID,id);
         return i;
     }
 
@@ -221,17 +224,32 @@ public class App {
         if (i.getComponent()==null)
             return i;
         id++;
-        //Intent i=new Intent(intent);
+        Intent intent=new Intent();
 
-        i.putExtra("an",i.getComponent().getClassName());
-        i.setComponent(new ComponentName(mcontext,mActivityClass));
-        i.putExtra("id",id);
-        return i;
+        intent.putExtra(EXTRA_OLD_INTENT,i);
+        intent.putExtra(EXTRA_TARGET_CLASS,i.getComponent().getClassName());
+        intent.setComponent(new ComponentName(mcontext,mActivityClass));
+        intent.putExtra(EXTRA_ID,id);
+        return intent;
+    }
+
+    public Intent startServiceIntent(Intent i)
+    {
+        if (i.getComponent()==null)
+            return i;
+        id++;
+        Intent intent=new Intent();
+
+        intent.putExtra(EXTRA_OLD_INTENT,i);
+        intent.putExtra(EXTRA_TARGET_CLASS,i.getComponent().getClassName());
+        intent.setComponent(new ComponentName(mcontext,mServiceClass));
+        intent.putExtra(EXTRA_ID,id);
+        return intent;
     }
 
     public String getIntentClassName(Intent i)
     {
-        String r=i.getStringExtra("an");
+        String r=i.getStringExtra(EXTRA_TARGET_CLASS);
         return r!=null?r:info.mainClass;
     }
 
@@ -240,13 +258,34 @@ public class App {
         if (!appAttached)
             attachApplication(c);
         String x;
-        x=i.getStringExtra(EXTRA_TARGET_ACTIVITY);
-        if (x==null)
-            x=getInfo().mainClass;
+        x=i.getStringExtra(EXTRA_TARGET_CLASS);
+        if (x==null) {
+            x = getInfo().mainClass;
+        }else
+        i=i.getParcelableExtra(EXTRA_OLD_INTENT);
 
         Activity a=getActivity(x);
         c.setRealActivity(a);
-        attachActivity(c,a);
+        attachActivity(c,a,i);
+    }
+
+    public Service solveIntent(ServiceBase c, Intent i)
+    {
+        if (!appAttached)
+            attachApplication(c);
+        String className=null;
+        className=i.getStringExtra(EXTRA_TARGET_CLASS);
+        if (className==null)
+            className=getInfo().mainClass;
+        Service s=null;
+        s=c.getRealService(className);
+        if (s!=null)
+            return s;
+
+        s=getService(className);
+        attachService(c,s);
+
+        return s;
     }
 
     public List getAppTask()
@@ -279,6 +318,22 @@ public class App {
         return null;
     }
 
+    public Service getService(String name)
+    {
+        try {
+            PathClassLoader l=(PathClassLoader) invoke(loadedApk.getClass(),loadedApk,"getClassLoader",new Class[]{});
+            return (Service) l.loadClass(name).newInstance();
+        } catch (InstantiationException e) {
+            Log.e("xx",e.toString());
+        } catch (IllegalAccessException e) {
+            Log.e("xx",e.toString());
+        } catch (ClassNotFoundException e) {
+            Log.e("xx",e.toString());
+        }
+
+        return null;
+    }
+
     public Application getApplication()
     {
         return application;
@@ -291,6 +346,7 @@ public class App {
 
     public void attachApplication(Context c)
     {
+        setField(mThread,"mInstrumentation",new PachInstr((Instrumentation) readField(mThread,"mInstrumentation"),this));
         try {
             context=new ContextBase(c,mThread,loadedApk,this,false);
             Method m = Application.class.getDeclaredMethod("attach", Context.class);
@@ -309,10 +365,10 @@ public class App {
         }
     }
 
-    public void attachActivity(Activity base,Activity target){
+    public void attachActivity(Activity base,Activity target,Intent ri){
         try{
-            Log.e("xx","attach activity:"+target.getClass().getName());
-            Object thread=readField(Activity.class,base,"mMainThread"),token=readField(Activity.class,base,"mToken"),ident=readField(Activity.class,base,"mIdent"),intent=readField(Activity.class,base,"mIntent"),
+            Log.i("xx","attach activity:"+target.getClass().getName());
+            Object thread=readField(Activity.class,base,"mMainThread"),token=readField(Activity.class,base,"mToken"),ident=readField(Activity.class,base,"mIdent"),
                     mLastNonConfigurationInstances=readField(Activity.class,base,"mLastNonConfigurationInstances"),mCurrentConfig=readField(Activity.class,base,"mCurrentConfig"),mReferrer=readField(Activity.class,base,"mReferrer"),
                     mVoiceInteractor=readField(Activity.class,base,"mVoiceInteractor");
             ContextBase.init(thread,info.info.applicationInfo);
@@ -330,7 +386,7 @@ public class App {
             //m=Activity.class.getDeclaredMethod("attach",Context.class,thread.getClass(), Instrumentation.class, IBinder.class,
              //       int.class,Application.class,Intent.class, ActivityInfo.class,CharSequence.class,Activity.class,String.class,
              //       mLastNonConfigurationInstances.getClass(), Configuration.class,String.class,mVoiceInteractor.getClass());
-            m.invoke(target,context,thread,new PachInstr((Instrumentation) readField(Activity.class,base,"mInstrumentation"),this),token,(int)ident,application,base.getIntent(),getActInfo(getIntentClassName(base.getIntent())),
+            m.invoke(target,context,thread,readField(mThread,"mInstrumentation"),token,(int)ident,application,ri,getActInfo(target.getClass().getName()),
                    "title",null,"id",mLastNonConfigurationInstances,mCurrentConfig,mReferrer,mVoiceInteractor);
 
             //m.invoke(target, new Object[]{base, null, new Instrumentation(), null, 0, getApplication(), base.getIntent(), info.activities[0], "xxx", getParent(), "00", null, null, "", null});
@@ -353,5 +409,31 @@ public class App {
         }
     }
 
+    public void attachService(Service base,Service target)
+    {
+        try{
+            Log.e("xx","attach service:"+target.getClass().getName());
+            Object thread=readField(Service.class,base,"mThread"),token=readField(Service.class,base,"mToken"),ams=readField(Service.class,base,"mActivityManager");
+            ContextBase.init(thread,info.info.applicationInfo);
+            Method ms[]=Service.class.getDeclaredMethods();
+            Method m=null;
+            for (int i=0;i<ms.length;i++)
+            {
+                if (ms[i].getName().equals("attach"))
+                {
+                    m=ms[i];
+                    m.setAccessible(true);
+                    break;
+                }
+            }
+            m.invoke(target,context,thread,target.getClass().getName(),token,application,ams);
+        }catch (InvocationTargetException e) {
+            Log.e("xx","in acitivity attach:"+e.getCause().toString());
+        }  catch (IllegalAccessException e) {
+            Log.e("xx",e.toString());
+        }
+
+        target.onCreate();
+    }
 
 }

@@ -57,7 +57,7 @@ public class ActivityBase extends Activity{
         try {
             Method m=ActivityMethods.get(method);
             m.setAccessible(true);
-            Log.e("xx","invoke "+realActivity.toString()+":"+m.getName());
+            //Log.e("xx","invoke "+realActivity.toString()+":"+m.getName());
             return m.invoke(realActivity,params);
         } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
@@ -109,6 +109,7 @@ public class ActivityBase extends Activity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTaskDescription(new ActivityManager.TaskDescription("aaaa"));
         app=((MainApp)getApplication()).getApp();
         app.solveIntent(this);
 
@@ -122,12 +123,7 @@ public class ActivityBase extends Activity{
         setField(Activity.class,realActivity,"mParent",null);
         super.onCreate(savedInstanceState);
 
-        List<ActivityManager.RecentTaskInfo> list=((ActivityManager)getSystemService(ACTIVITY_SERVICE)).getRecentTasks(20,0);
-        Log.e("xx",list.size()+"");
-        for (int i=0;i<list.size();i++)
-        {
-            Log.e("xx",list.get(i).affiliatedTaskId+"");
-        }
+
     }
 
     @Override

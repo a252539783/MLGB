@@ -1430,8 +1430,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
 
     @Override
     public ComponentName startService(Intent service) {     //undefined
-        service.putExtra("sn",service.getComponent().getClassName());
-        service.setComponent(new ComponentName(mMainContext,TestService.class));
+        service=app.startServiceIntent(service);
         //service=new Intent(mMainContext,TestService.class);
         ComponentName cn=mMainContext.startService(service);
         Log.e("xx","startSer"+cn.toString());
@@ -1508,8 +1507,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
     public boolean bindService(Intent service, ServiceConnection conn,
                                int flags) {
 
-        service.putExtra("sn",service.getComponent().getClassName());
-        service.setComponent(new ComponentName(mMainContext,TestService.class));
+        service=app.startServiceIntent(service);
         return mMainContext.bindService(service, conn, flags);
         /*
         warnIfCallingFromSystemProcess();
