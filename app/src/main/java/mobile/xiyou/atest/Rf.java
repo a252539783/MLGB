@@ -21,6 +21,15 @@ public class Rf {
         }catch (Exception e)
         {
             Log.e("xx",e.toString());
+            Field f = null;
+            try {
+                f = o.getClass().getField(name);
+                f.setAccessible(true);
+                return f.get(o);
+            } catch (Exception e1) {
+                Log.e("xx",e1.toString());
+            }
+
         }
         return null;
     }

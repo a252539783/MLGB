@@ -40,11 +40,10 @@ public class PachInstr extends Instrumentation {
             Intent intent, int requestCode, Bundle options) {
 
         intent=app.startActivityIntent(intent);
-        Log.e("xx","start "+intent.getComponent()+":"+app.getIntentClassName(intent));
         Object x=null;
         try {
             Method m = Instrumentation.class.getDeclaredMethod("execStartActivity", Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class, int.class, Bundle.class);
-            x=m.invoke(base, who, contextThread, token, target, intent, requestCode, options);
+            x=m.invoke(base,app.getMContext(), contextThread, token, target, intent, requestCode, options);
         }catch (InvocationTargetException e)
         {
             Log.e("xx","in startActivity:"+e.getCause().toString());
@@ -54,8 +53,13 @@ public class PachInstr extends Instrumentation {
             Log.e("xx",e.toString());
         }
 
-        if (x!=null)
-            return (ActivityResult)x;
+        if (x!=null) {
+            Log.e("xx","start for result");
+            return (ActivityResult) x;
+
+        }
+
+        Log.e("xx","start no result");
         return null;
     }
 

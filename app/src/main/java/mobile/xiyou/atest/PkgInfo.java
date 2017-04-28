@@ -8,8 +8,12 @@ import android.util.Log;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+
+import static mobile.xiyou.atest.Rf.*;
 
 /**
  * Created by Administrator on 2017/2/24 0024.
@@ -20,11 +24,38 @@ public class PkgInfo {
     public PackageInfo info;
     public String mainClass="";
     public Object pkg;
+    public IntentFilters intents=null;
 
     public PkgInfo(PackageInfo i,String main,Object pkg) {
         this.info=i;
         this.mainClass=main;
         this.pkg=pkg;
+    }
+
+    public static class IntentFilters
+    {
+        public HashMap<String,List<IntentFilter>> activity,receiver;
+
+        public IntentFilters(Object pkg)
+        {
+            activity=new HashMap<>();
+            List acs= (List) readField(pkg,"activities");
+            for (int i=0;i<acs.size();i++)
+            {
+                ActivityInfo ai= (ActivityInfo) readField(acs.get(i),"info");
+                activity.put(ai.name,(List<IntentFilter>) readField(acs.get(i),"intents"));
+            }
+
+            receiver=new HashMap<>();
+            List rec= (List) readField(pkg,"receivers");
+            for (int i=0;i<rec.size();i++)
+            {
+                ActivityInfo ai= (ActivityInfo) readField(acs.get(i),"info");
+                List xx=(List)readField(acs.get(i),"intents");
+                Log.e("xx","if size:"+xx.size());
+                receiver.put(ai.name,(List<IntentFilter>)xx );
+            }
+        }
     }
 
     public static PkgInfo getPackageArchiveInfo(String archiveFilePath, int flags) {
@@ -61,7 +92,9 @@ public class PkgInfo {
             state = Class.forName("android.content.pm.PackageUserState").newInstance();
             generate=Parser.getDeclaredMethod("generatePackageInfo",pkg.getClass(),int[].class,int .class,long.class,long.class,Set.class,state.getClass());
             PackageInfo i=(PackageInfo) generate.invoke(null,new Object[]{pkg, null, flags, 0, 0, null, state});
-            return new PkgInfo(i,main,pkg);
+            PkgInfo pi= new PkgInfo(i,main,pkg);
+            pi.intents=new IntentFilters(pkg);
+            return pi;
         }
         catch (Exception e) {
             Log.e("xx",e.toString());

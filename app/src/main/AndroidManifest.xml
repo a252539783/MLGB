@@ -24,6 +24,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
         <activity
             android:name=".TestActivity"
@@ -34,13 +35,18 @@
             android:process=":a1"
             android:name=".ActivityBase$A1"
             android:taskAffinity=":a1"
+            android:allowTaskReparenting="true"
             android:label="a1"
             />
         <activity android:name=".ActivityBase$A2"
             android:process=":a2"
+            android:allowTaskReparenting="true"
+            android:taskAffinity=":a2"
             />
         <activity android:name=".ActivityBase$A3"
             android:process=":a3"
+            android:taskAffinity=":a3"
+
             />
         <activity android:name=".ActivityBase$A4"
             android:process=":a4"

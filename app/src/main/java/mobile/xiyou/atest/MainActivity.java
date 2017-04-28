@@ -69,8 +69,9 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
         Button a= (Button)findViewById(R.id.bbb);
         test=a;
         a.setOnClickListener(this);
-        a.setText(""+getTaskId());
-        Log.e("xx","onCreate");
+        findViewById(R.id.aaa).setOnClickListener(this);
+        //a.setText(""+getTaskId());
+        //Log.e("xx","onCreate");
 
         if (started) {
             sc = new ServiceConnection() {
@@ -113,15 +114,30 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
     @Override
     public void onClick(View v) {
 
-
-       try {
+if (v.getId()==R.id.aaa) {
+    try {
             ams.startApp("com.example.wyz.xiyoug");
 //           ams.startApp("com.example.share4_15");
+        //ams.startApp("com.tencent.mobileqq");
+        //ams.startApp("a.a.zzz");
+    } catch (RemoteException e) {
+        e.printStackTrace();
+        Log.e("xx", e.toString());
+    }
+}
+        else
+    if (v.getId()==R.id.bbb)
+    {
+        try {
+//            ams.startApp("com.example.wyz.xiyoug");
+           ams.startApp("com.example.share4_15");
             //ams.startApp("com.tencent.mobileqq");
+            //ams.startApp("a.a.zzz");
         } catch (RemoteException e) {
             e.printStackTrace();
-            Log.e("xx",e.toString());
+            Log.e("xx", e.toString());
         }
+    }
 
         //AppManager.get().startApp(this,"xiyou.mobile.android.elisten",0);
         //AppManager.get().startApp(this,"com.example.wyz.xiyoug",0);

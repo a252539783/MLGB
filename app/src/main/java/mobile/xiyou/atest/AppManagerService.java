@@ -25,7 +25,7 @@ import static mobile.xiyou.atest.Rf.*;
  * Created by user on 2017/4/13.
  */
 
-public class AppManagerService extends Service{
+public class AppManagerService extends Service implements Runnable{
 
     public static final String FILE_APPNAME="launchAppName";
     public static final int RUN_MAX=50;
@@ -52,6 +52,25 @@ public class AppManagerService extends Service{
         }
     };
 
+    @Override
+    public void run() {
+        while (true)
+        {
+            List<ActivityManager.AppTask> rapps=am.getAppTasks();
+
+            for (int i=0;i<rapps.size();i++)
+            {
+                Log.e("xx","task"+rapps.get(i).getTaskInfo().id);
+            }
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public AppManagerService()
     {
         appList=new HashMap<>();
@@ -74,6 +93,7 @@ public class AppManagerService extends Service{
         updateAppList();
 
 //taskid   launchId   pkg
+        launchAppName=name;
         Integer taskId=appList.get(name);
         if (taskId!=null&&runList[taskList.get(taskId)])
         {
@@ -88,15 +108,17 @@ public class AppManagerService extends Service{
                 break;
             }
         }
-        launchAppName=name;
+
+
 
         try {
             FileOutputStream fos=openFileOutput(FILE_APPNAME,MODE_PRIVATE);
             fos.write((name+"/"+launchIndex).getBytes());
-            //Log.e("xx",(name+"|"+launchIndex));
+            Log.e("xx",(name+"|"+launchIndex));
             fos.close();
             Intent i=new Intent(this,Class.forName("mobile.xiyou.atest.ActivityBase$A"+(launchIndex+1)));
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            i.addFlags(Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS);
             startActivity(i);
             //Log.e("xx",""+((ActivityManager)getSystemService(ACTIVITY_SERVICE)).getAppTasks().get(0).getTaskInfo().topActivity.getClassName());
         } catch (ClassNotFoundException e) {
@@ -140,9 +162,11 @@ public class AppManagerService extends Service{
             {
                 taskList.put(rapps.get(i).getTaskInfo().id,launchIndex);
                 appList.put(launchAppName,rapps.get(i).getTaskInfo().id);
+                Log.e("xx","+  "+rapps.get(i).getTaskInfo().id);
             }
 
             int launchI=taskList.get(rapps.get(i).getTaskInfo().id);
+
             if (launchI!=-1)
                 runList[launchI]=true;
         }
@@ -157,13 +181,15 @@ public class AppManagerService extends Service{
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        am=((ActivityManager)getSystemService(ACTIVITY_SERVICE));
-        List<ActivityManager.AppTask> rapps=am.getAppTasks();
+        if (am==null) {
+            am = ((ActivityManager) getSystemService(ACTIVITY_SERVICE));
+            List<ActivityManager.AppTask> rapps = am.getAppTasks();
 
-        for (int i=0;i<rapps.size();i++)
-        {
-            taskList.put(rapps.get(i).getTaskInfo().id,-1);
+            for (int i = 0; i < rapps.size(); i++) {
+                taskList.put(rapps.get(i).getTaskInfo().id, -1);
+            }
         }
+        //new Thread(this).start();
         return super.onStartCommand(intent, flags, startId);
     }
 

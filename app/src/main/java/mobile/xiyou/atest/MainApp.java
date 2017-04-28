@@ -2,6 +2,7 @@ package mobile.xiyou.atest;
 
 import android.app.ActivityManager;
 import android.app.Application;
+import android.content.ComponentCallbacks;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -24,6 +25,7 @@ public class MainApp extends Application {
     private String appName=null;
     private String processName=null;
     private int appid=0;
+    private Application realapp;
 
     public MainApp()
     {
@@ -70,10 +72,49 @@ public class MainApp extends Application {
             Log.e("xx",e.toString());
         }
         app=new App(this,appName,appid);
+        realapp=app.getApplication();
     }
 
     public App getApp()
     {
         return app;
     }
+
+
+    @Override
+    public void registerActivityLifecycleCallbacks(ActivityLifecycleCallbacks callback) {
+        super.registerActivityLifecycleCallbacks(callback);
+        app.getApplication().registerActivityLifecycleCallbacks(callback);
+    }
+
+    @Override
+    public void registerComponentCallbacks(ComponentCallbacks callback) {
+        realapp.registerComponentCallbacks(callback);
+        super.registerComponentCallbacks(callback);
+    }
+
+    @Override
+    public void registerOnProvideAssistDataListener(OnProvideAssistDataListener callback) {
+        realapp.registerOnProvideAssistDataListener(callback);
+        super.registerOnProvideAssistDataListener(callback);
+    }
+
+    @Override
+    public void unregisterActivityLifecycleCallbacks(ActivityLifecycleCallbacks callback) {
+        realapp.unregisterActivityLifecycleCallbacks(callback);
+        super.unregisterActivityLifecycleCallbacks(callback);
+    }
+
+    @Override
+    public void unregisterComponentCallbacks(ComponentCallbacks callback) {
+        realapp.unregisterComponentCallbacks(callback);
+        super.unregisterComponentCallbacks(callback);
+    }
+
+    @Override
+    public void unregisterOnProvideAssistDataListener(OnProvideAssistDataListener callback) {
+        realapp.unregisterOnProvideAssistDataListener(callback);
+        super.unregisterOnProvideAssistDataListener(callback);
+    }
+
 }

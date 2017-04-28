@@ -121,17 +121,16 @@ public class ActivityBase extends Activity{
 
         invoke(ActivityMethods.ONCREATE,savedInstanceState);
         setField(Activity.class,realActivity,"mParent",null);
-        super.onCreate(savedInstanceState);
+        callSuper();
 
 
     }
 
+
     @Override
     public boolean onCreatePanelMenu(int featureId, Menu menu) {
-        Object x=invoke(ActivityMethods.ONCREATEPANELMENU,featureId,menu);
-        if (x!=null)
-            return (boolean)x;
-        return false;
+
+        return realActivity.onCreatePanelMenu(featureId, menu);
     }
 
     @Override
@@ -140,161 +139,149 @@ public class ActivityBase extends Activity{
     }
 
     @Override
+    public void finish() {
+        Log.e("xx","finish");
+        realActivity.finish();
+    }
+
+    @Override
+    public void onBackPressed() {Log.e("xx","back");
+        realActivity.onBackPressed();
+
+    }
+
+    @Override
+    public void finishActivity(int requestCode) {
+        realActivity.finishActivity(requestCode);
+    }
+
+    @Override
+    public void finishAfterTransition() {
+        realActivity.finishAfterTransition();
+    }
+
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        Object x=invoke(ActivityMethods.ONCREATEOPTIONSMENU,menu);
-        if (x!=null)
-            return (boolean)x;
-        return false;
+        return realActivity.onCreateOptionsMenu(menu);
     }
 
     @Override
     protected void onDestroy() {
         invoke(ActivityMethods.ONDESTROY);
-        super.onDestroy();
+        callSuper();
     }
 
     @Override
     protected void onStart() {
         invoke(ActivityMethods.ONSTART);
-        super.onStart();
+        callSuper();
     }
 
     @Override
     protected void onRestart() {
         invoke(ActivityMethods.ONRESTART);
-        super.onRestart();
+        callSuper();
     }
 
     @Override
     protected void onResume() {
         invoke(ActivityMethods.ONRESUME);
-        super.onResume();
+        callSuper();
     }
 
     @Override
     protected void onPause() {
         invoke(ActivityMethods.ONPAUSE);
-        super.onPause();
+        callSuper();
+    }
+
+    @Override
+    public void onDetachedFromWindow() {
+        realActivity.onDetachedFromWindow();
     }
 
     @Override
     protected void onStop() {
         invoke(ActivityMethods.ONSTOP);
-        super.onStop();
+        callSuper();
     }
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        Object x=invoke(ActivityMethods.ONCONTEXTITEMSELECTED,item);
-        if (x!=null)
-            return (boolean)x;
-        return super.onContextItemSelected(item);
+        return realActivity.onContextItemSelected(item);
     }
 
     @Override
     public void onContextMenuClosed(Menu menu) {
-        invoke(ActivityMethods.ONCONTEXTMENUCLOSED);
-        super.onContextMenuClosed(menu);
+        realActivity.onContextMenuClosed(menu);
     }
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        invoke(ActivityMethods.ONCREATECONTEXTMENU,menu,v,menuInfo);
-        super.onCreateContextMenu(menu, v, menuInfo);
+        realActivity.onCreateContextMenu(menu, v, menuInfo);
     }
 
     @Override
     public CharSequence onCreateDescription() {
-        Object x=invoke(ActivityMethods.ONCREATEDESCRIPTION);
-        if (x!=null)
-            return (String)x;
-        return super.onCreateDescription();
+        return realActivity.onCreateDescription();
     }
 
     @Override
     public View onCreatePanelView(int featureId) {
-        Object x=invoke(ActivityMethods.ONCREATEPANELVIEW,featureId);
-        if (x!=null)
-            return (View)x;
-        return super.onCreatePanelView(featureId);
+        return realActivity.onCreatePanelView(featureId);
     }
 
     @Override
     public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas) {
-        Object x=invoke(ActivityMethods.ONCREATETHUMBNAIL,outBitmap,canvas);
-        if (x!=null)
-            return (boolean)x;
-        return super.onCreateThumbnail(outBitmap, canvas);
+        return realActivity.onCreateThumbnail(outBitmap, canvas);
     }
 
     @Override
     public View onCreateView(String name, Context context, AttributeSet attrs) {
-        Object x=invoke(ActivityMethods.ONCREATEVIEW1,name,context,attrs);
-        if (x!=null)
-            return (View)x;
-        return super.onCreateView(name, context, attrs);
+        return realActivity.onCreateView(name, context, attrs);
     }
 
     @Override
     public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
-        Object x=invoke(ActivityMethods.ONCREATEVIEW2,parent,name,context,attrs);
-        if (x!=null)
-            return (View)x;
-        return super.onCreateView(parent, name, context, attrs);
+        return realActivity.onCreateView(parent, name, context, attrs);
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Object x=invoke(ActivityMethods.ONKEYDOWN,keyCode,event);
-        if (x!=null)
-            return (boolean)x;
-        return super.onKeyDown(keyCode, event);
+        return realActivity.onKeyDown(keyCode,event);
     }
 
     @Override
     public boolean onKeyMultiple(int keyCode, int repeatCount, KeyEvent event) {
-        Object x=invoke(ActivityMethods.ONKEYMULTIPLE,keyCode,repeatCount,event);
-        if (x!=null)
-            return (boolean)x;
-        return super.onKeyMultiple(keyCode, repeatCount, event);
+        return realActivity.onKeyMultiple(keyCode, repeatCount, event);
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        Object x=invoke(ActivityMethods.ONKEYUP,keyCode,event);
-        if (x!=null)
-            return (boolean)x;
-        return super.onKeyUp(keyCode, event);
+        return realActivity.onKeyUp(keyCode, event);
     }
 
     @Override
     public void onLowMemory() {
-        invoke(ActivityMethods.ONLOWMEMORY);
-        super.onLowMemory();
+        realActivity.onLowMemory();
+        callSuper();
     }
 
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
-        Object x=invoke(ActivityMethods.ONMENUITEMSELECTED,featureId,item);
-        if (x!=null)
-            return (boolean)x;
-        return super.onMenuItemSelected(featureId, item);
+
+        return realActivity.onMenuItemSelected(featureId, item);
     }
 
     @Override
     public boolean onMenuOpened(int featureId, Menu menu) {
-        Object x=invoke(ActivityMethods.ONMENUOPENED,featureId,menu);
-        if (x!=null)
-            return (boolean)x;
-        return super.onMenuOpened(featureId, menu);
+        return realActivity.onMenuOpened(featureId, menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Object x=invoke(ActivityMethods.ONOPTIONSITEMSELECTED,item);
-        if (x!=null)
-            return (boolean)x;
-        return super.onOptionsItemSelected(item);
+        return realActivity.onOptionsItemSelected(item);
     }
 
     @Override
@@ -341,10 +328,7 @@ public class ActivityBase extends Activity{
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Object x=invoke(ActivityMethods.ONTOUCHEVENT,event);
-        if (x!=null)
-            return (boolean)x;
-        return super.onTouchEvent(event);
+        return realActivity.onTouchEvent(event);
     }
 
     @Override
@@ -369,8 +353,12 @@ public class ActivityBase extends Activity{
 
     @Override
     public void onUserInteraction() {
-        invoke(ActivityMethods.ONUSERINTERACTION);
-        super.onUserInteraction();
+        realActivity.onUserInteraction();
+    }
+
+    private void callSuper()
+    {
+        setField(Activity.class,this,"mCalled",true);
     }
 
     private static class ActivityMethods
@@ -410,7 +398,6 @@ public class ActivityBase extends Activity{
         public static final int ONWINDOWATTRIBUTESCHANGED=32;
         public static final int ONWINDOWFOCUSCHANGED=33;
         public static final int ONCREATEVIEW2=34;
-        public static final int ATTACHBASE=35;
 
         private Method []methods;
         private static ActivityMethods am=new ActivityMethods();
@@ -431,7 +418,7 @@ public class ActivityBase extends Activity{
                     "onMenuItemSelected","onMenuOpened","onOptionsItemSelected","onOptionsMenuClosed",
                     "onPanelClosed","onPrepareOptionsMenu","onPreparePanel","onRetainNonConfigurationInstance",
                     "onSearchRequested","onTouchEvent","onTrackballEvent","onUserInteraction",
-                    "onWindowAttributesChanged","onWindowFocusChanged","onCreateView","attachBaseContext"};
+                    "onWindowAttributesChanged","onWindowFocusChanged","onCreateView"};
             params=new Object[]{new Class[]{Bundle.class},new Class[]{int.class,Menu.class},new Class[]{Menu.class},
                     new Class[]{},new Class[]{},new Class[]{},new Class[]{},new Class[]{},new Class[]{},
                     new Class[]{MenuItem.class},new Class[]{Menu.class},new Class[]{ContextMenu.class,View.class, ContextMenu.ContextMenuInfo.class},
@@ -441,7 +428,7 @@ public class ActivityBase extends Activity{
                     new Class[]{int.class,MenuItem.class},new Class[]{int.class,Menu.class},new Class[]{MenuItem.class},new Class[]{Menu.class},
                     new Class[]{int.class,Menu.class},new Class[]{Menu.class},new Class[]{int.class,View.class,Menu.class},new Class[]{},
                     new Class[]{},new Class[]{MotionEvent.class},new Class[]{MotionEvent.class},new Class[]{},
-                    new Class[]{WindowManager.LayoutParams.class},new Class[]{boolean.class},new Class[]{View.class,String.class,Context.class,AttributeSet.class},new Class[]{Context.class}};
+                    new Class[]{WindowManager.LayoutParams.class},new Class[]{boolean.class},new Class[]{View.class,String.class,Context.class,AttributeSet.class}};
             methods=new Method[names.length];
 
             for (int i=0;i<methods.length;i++)

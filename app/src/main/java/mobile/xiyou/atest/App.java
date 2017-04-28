@@ -5,9 +5,11 @@ import android.app.ActivityManager;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -76,8 +78,9 @@ public class App {
             Context cc=c.createPackageContext(packageName, CONTEXT_IGNORE_SECURITY);
 
             String apkPath=cc.getPackageResourcePath();
-            info=PkgInfo.getPackageArchiveInfo(apkPath,PackageManager.GET_ACTIVITIES|PackageManager.GET_META_DATA|PackageManager.GET_SHARED_LIBRARY_FILES);
-            info.info=c.getPackageManager().getPackageInfo(packageName,PackageManager.GET_ACTIVITIES);
+            info=PkgInfo.getPackageArchiveInfo(apkPath,PackageManager.GET_ACTIVITIES|PackageManager.GET_META_DATA|PackageManager.GET_SHARED_LIBRARY_FILES|PackageManager.GET_RECEIVERS);
+
+            //info.info=c.getPackageManager().getPackageInfo(packageName,PackageManager.GET_ACTIVITIES);
             Intent i=new Intent(Intent.ACTION_MAIN, null);
             i.addCategory(Intent.CATEGORY_LAUNCHER);
             List<ResolveInfo> a=c.getPackageManager().queryIntentActivities(i,0);
@@ -87,7 +90,7 @@ public class App {
 
                 if (a.get(ii).activityInfo.packageName.equals(packageName)) {
                     info.mainClass = a.get(ii).activityInfo.name;
-                    Log.e("xx", a.get(ii).activityInfo.name.toString());
+                    //Log.e("xx", a.get(ii).activityInfo.name.toString());
                 }
             }
             }
@@ -113,7 +116,7 @@ public class App {
 
             if (info.info.applicationInfo.className!=null) {
                 application = (Application) loader.loadClass(info.info.applicationInfo.className).newInstance();
-                Log.e("xx","application:"+info.info.applicationInfo.className);
+                //Log.e("xx","application:"+info.info.applicationInfo.className);
             }
             else
             application=new Application();
@@ -148,9 +151,39 @@ public class App {
 
     }
 
+    private void staticRegister()
+    {
+        Log.e("xx","all Rec"+info.intents.receiver.size());
+        if (info.info.receivers!=null)
+        for (int i=0;i<info.info.receivers.length;i++)
+        {
+            //context.registerReceiver(getLoader().loadClass(info.info.receivers[i].name).newInstance());
+            IntentFilter in=new IntentFilter();
+            List<IntentFilter> lin=info.intents.receiver.get(info.info.receivers[i].name);
+            if (lin==null)
+                continue;
+            BroadcastReceiver br=null;
+            try {
+                br= (BroadcastReceiver) getLoader().loadClass(info.info.receivers[i].name).newInstance();
+            } catch (ClassNotFoundException e) {
+                Log.e("xx",e.toString());
+            } catch (InstantiationException e) {
+                Log.e("xx",e.toString());
+            } catch (IllegalAccessException e) {
+                Log.e("xx",e.toString());
+            }
+
+            for (int j=0;j<lin.size();j++)
+            {
+                context.registerReceiver(br,lin.get(i));
+                Log.i("xx","register :"+br.getClass().getName());
+            }
+        }
+    }
+
     public ClassLoader getLoader()
     {
-        return loader;
+        return (PathClassLoader) invoke(loadedApk.getClass(),loadedApk,"getClassLoader",new Class[]{});
     }
 
     public ActivityInfo getActInfo(String name)
@@ -339,6 +372,11 @@ public class App {
         return application;
     }
 
+    public Context getMContext()
+    {
+        return mcontext;
+    }
+
     public PkgInfo getInfo()
     {
         return info;
@@ -355,6 +393,7 @@ public class App {
             setField(Application.class,application,"mLoadedApk",loadedApk);
             invoke(Application.class,application,"onCreate",new Class[]{});
             appAttached=true;
+            staticRegister();
 
         }catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());
@@ -399,7 +438,14 @@ public class App {
             setField(Window.class,window,"mFeatures",window.getDefaultFeatures(target));
             setField(Window.class,window,"mLocalFeatures",window.getDefaultFeatures(target));
             setField(window,"mLayoutInflater", LayoutInflater.from(target));
+            setField(Activity.class,target,"mHandler",readField(Activity.class,base,"mHandler"));
+            setField(Activity.class,target,"mManagedCursors",readField(Activity.class,base,"mManagedCursors"));
             setField(Activity.class,target,"mFragments",readField(Activity.class,base,"mFragments"));
+            setField(Activity.class,target,"mUiThread",readField(Activity.class,base,"mUiThread"));
+            setField(Activity.class,target,"mActivityTransitionState",readField(Activity.class,base,"mActivityTransitionState"));
+            //setField(Activity.class,target,"mFragments",readField(Activity.class,base,"mFragments"));
+            //setField(Activity.class,target,"mFragments",readField(Activity.class,base,"mFragments"));
+
             //setField(ContextThemeWrapper.class,target,"mTheme",getTheme());
             //setField(Activity.class,base,"mInstrumentation",new PachInstr(new Instrumentation()));
         }catch (InvocationTargetException e) {
