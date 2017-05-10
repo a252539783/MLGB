@@ -26,8 +26,8 @@ android {
     }
 
     externalNativeBuild {
-        cmake {                                      //指定编译工具为cmake
-            path "CMakeLists.txt"     //此处路径是相对于app主目录的路径
+        cmake {
+            path "CMakeLists.txt"
         }
     }
 }
@@ -38,4 +38,5 @@ dependencies {
 //        exclude group: 'com.android.support', module: 'support-annotations'
 //    })
     compile 'com.android.support:appcompat-v7:23.4.0'
+    compile project(path: ':hook')
 }
