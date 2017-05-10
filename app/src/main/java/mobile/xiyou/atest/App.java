@@ -1,7 +1,6 @@
 package mobile.xiyou.atest;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.app.Service;
@@ -11,24 +10,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.IBinder;
-import android.util.ArrayMap;
+import android.os.Handler;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Window;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -58,16 +51,17 @@ public class App {
     private AssetManager am;
     private Resources.Theme theme;
     private HashMap<Integer,Resources.Theme> themes;
-    private Context context,mcontext;
+    private Context context, baseContext;
     private int id=0,appid=0;
     private boolean appAttached=false,taskAdded=false;
-    private Object mThread=null,loadedApk=null;
+    private Object mThread=null,loadedApk=null,baseLoadedApk=null;
     private Class mActivityClass=null,mServiceClass=null;
+    private Context appContext;
 
     public App(Context c,String packageName,int appid)
     {
         this.appid=appid;
-        mcontext=c;
+        baseContext =c;
         context=c;
         defaultLoader=c.getClassLoader();
         try {
@@ -94,11 +88,14 @@ public class App {
                 }
             }
             }
-//            ApplicationInfo ai=(ApplicationInfo) readField(info.pkg.getClass(),info.pkg,"applicationInfo");
-//            Log.e("xx",readField(ApplicationInfo.class,ai,"primaryCpuAbi").toString());
             //Init
             info.info.applicationInfo.dataDir="/data/data/"+info.info.packageName+"";
+            info.info.applicationInfo.sourceDir=apkPath;
             loadedApk=ContextBase.loadApk(mThread,info.info.applicationInfo);
+            baseLoadedApk=ContextBase.loadApk(mThread,c.getApplicationInfo());
+
+            baseContext=(Context)invoke(Class.forName("android.app.ContextImpl"),null,"createActivityContext",new Class[]{mThread.getClass(),baseLoadedApk.getClass(),int.class, Configuration.class},mThread,baseLoadedApk, Display.DEFAULT_DISPLAY,new Configuration());
+            invoke(baseContext,"setOuterContext",new Class[]{Context.class},baseContext);
             //Log.e("xx","xx"+(readField(loadedApk.getClass(),loadedApk,"mPackageName")==null));
             //invoke(loadedApk.getClass(),loadedApk,"makeApplication",new Class[]{boolean.class,Instrumentation.class},false,null);
             //cc=ContextBase.createActivityContext(mThread,loadedApk);
@@ -131,6 +128,9 @@ public class App {
             theme = res.newTheme();
             theme.setTo(cc.getTheme());
             theme.applyStyle(info.info.applicationInfo.theme, true);
+
+            setField(loadedApk,"mResources",res);
+            attachApplication(c);
         } catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());
         } catch (InstantiationException e) {
@@ -146,10 +146,23 @@ public class App {
         }
     }
 
-    public void launch()
+    public Object currentThread()
     {
-
+        return mThread;
     }
+
+    public void patchThread()
+    {
+        setField(Handler.class,readField(mThread,"mH"),"mCallback",new PatchThreadHandler(readField(mThread,"mH"),this));
+        setField(mThread,"mInitialApplication",application);
+        setField(mThread,"packageInfo",loadedApk);
+    }
+
+    public Context creteActivityContext(Activity a)
+    {
+        return new ContextBase(baseContext,mThread,loadedApk,this,false,a);
+    }
+
 
     private void staticRegister()
     {
@@ -226,6 +239,11 @@ public class App {
         themes.put(i,x);
     }
 
+    public Object getLoadedApk()
+    {
+        return loadedApk;
+    }
+
     public void setTheme(Resources.Theme t)
     {
         theme=t;
@@ -244,7 +262,7 @@ public class App {
     public Intent startActivityIntent(String name)
     {
         id++;
-        Intent i=new Intent(mcontext,mActivityClass);
+        Intent i=new Intent(baseContext,mActivityClass);
         //i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         i.putExtra(EXTRA_TARGET_CLASS,name);
         i.putExtra(EXTRA_ID,id);
@@ -261,7 +279,7 @@ public class App {
 
         intent.putExtra(EXTRA_OLD_INTENT,i);
         intent.putExtra(EXTRA_TARGET_CLASS,i.getComponent().getClassName());
-        intent.setComponent(new ComponentName(mcontext,mActivityClass));
+        intent.setComponent(new ComponentName(baseContext,mActivityClass));
         intent.putExtra(EXTRA_ID,id);
         return intent;
     }
@@ -275,7 +293,7 @@ public class App {
 
         intent.putExtra(EXTRA_OLD_INTENT,i);
         intent.putExtra(EXTRA_TARGET_CLASS,i.getComponent().getClassName());
-        intent.setComponent(new ComponentName(mcontext,mServiceClass));
+        intent.setComponent(new ComponentName(baseContext,mServiceClass));
         intent.putExtra(EXTRA_ID,id);
         return intent;
     }
@@ -374,7 +392,12 @@ public class App {
 
     public Context getMContext()
     {
-        return mcontext;
+        return baseContext;
+    }
+
+    public Context getContext()
+    {
+        return context;
     }
 
     public PkgInfo getInfo()
@@ -384,12 +407,13 @@ public class App {
 
     public void attachApplication(Context c)
     {
-        setField(mThread,"mInstrumentation",new PachInstr((Instrumentation) readField(mThread,"mInstrumentation"),this));
+        setField(mThread,"mInstrumentation",new PatchInstr((Instrumentation) readField(mThread,"mInstrumentation"),this));
         try {
-            context=new ContextBase(c,mThread,loadedApk,this,false);
+            context=new ContextBase(baseContext,mThread,loadedApk,this,false);
+            appContext=new ContextBase(c,mThread,loadedApk,this,false);
             Method m = Application.class.getDeclaredMethod("attach", Context.class);
             m.setAccessible(true);
-            m.invoke(application, context);
+            m.invoke(application, appContext);
             setField(Application.class,application,"mLoadedApk",loadedApk);
             invoke(Application.class,application,"onCreate",new Class[]{});
             appAttached=true;
@@ -447,7 +471,7 @@ public class App {
             //setField(Activity.class,target,"mFragments",readField(Activity.class,base,"mFragments"));
 
             //setField(ContextThemeWrapper.class,target,"mTheme",getTheme());
-            //setField(Activity.class,base,"mInstrumentation",new PachInstr(new Instrumentation()));
+            //setField(Activity.class,base,"mInstrumentation",new PatchInstr(new Instrumentation()));
         }catch (InvocationTargetException e) {
             Log.e("xx","in acitivity attach:"+e.getCause().toString());
         }  catch (IllegalAccessException e) {

@@ -6,6 +6,7 @@ import android.app.Application;
 import android.app.Fragment;
 import android.app.FragmentController;
 import android.app.Instrumentation;
+import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -38,7 +39,14 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Objects;
+
+import mobile.xiyou.hook.$;
+import mobile.xiyou.hook.ArtHook;
+import mobile.xiyou.hook.Hook;
+import mobile.xiyou.hook.OriginalMethod;
 
 import static android.content.pm.PackageManager.*;
 import static mobile.xiyou.atest.Rf.*;
@@ -60,6 +68,8 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
     private Context cc;
     private AppManagerNative ams=null;
     private ServiceConnection sc;
+
+    private static OriginalMethod om;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +103,10 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
             startActivity(i);
             started=true;
         }
+        Log.e("xx","dir:"+getApplicationInfo().sourceDir+":"+getApplicationInfo().splitSourceDirs);
+
+
+        //ArtHook.hook(MainActivity.class);
     }
 
     @Override
@@ -111,15 +125,39 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
         unbindService(sc);
     }
 
+    @Hook("mobile.xiyou.atest.MainActivity->xxx")
+    public static Object ttt(Object inst,Object params)
+    {
+        Log.e("proxy","ttt"+inst);
+        om.invoke(inst,params);
+        return 1;
+    }
+
+    public Object xxx(Integer a)
+    {
+        Log.e("orign","xxx"+a);
+        return 0;
+    }
+
+    @Hook("mobile.xiyou.atest.MainActivity->xxx")
+    public static void hxxx(Object r,int a)
+    {
+        Log.e("xx","hooked xxx");
+        OriginalMethod.by(new $(){}).invoke(r,a);
+    }
+
     @Override
     public void onClick(View v) {
+        //Log.e("xx","res+"+xxx(v.getId()));
 
 if (v.getId()==R.id.aaa) {
+    //Toast.makeText().show();
     try {
-            ams.startApp("com.example.wyz.xiyoug");
-//           ams.startApp("com.example.share4_15");
-        //ams.startApp("com.tencent.mobileqq");
-        //ams.startApp("a.a.zzz");
+//            ams.startApp("com.example.wyz.xiyoug");
+//           ams.startApp("com.teslacoilsw.launcher");
+//        ams.startApp("com.tencent.mobileqq");
+//        ams.startApp("com.coolapk.market");
+        ams.startApp("cn.kuwo.player");
     } catch (RemoteException e) {
         e.printStackTrace();
         Log.e("xx", e.toString());
@@ -130,7 +168,8 @@ if (v.getId()==R.id.aaa) {
     {
         try {
 //            ams.startApp("com.example.wyz.xiyoug");
-           ams.startApp("com.example.share4_15");
+           ams.startApp("com.youku.phone");
+
             //ams.startApp("com.tencent.mobileqq");
             //ams.startApp("a.a.zzz");
         } catch (RemoteException e) {
@@ -138,6 +177,7 @@ if (v.getId()==R.id.aaa) {
             Log.e("xx", e.toString());
         }
     }
+
 
         //AppManager.get().startApp(this,"xiyou.mobile.android.elisten",0);
         //AppManager.get().startApp(this,"com.example.wyz.xiyoug",0);
@@ -150,18 +190,6 @@ if (v.getId()==R.id.aaa) {
         //AppManager.get().startApp(this,"ly.pp.justpiano2",0);
         //AppManager.get().startApp(this,"com.example.user.testbindservice",0);
         //AppManager.get().startApp(this,"com.estrongs.android.pop.pro",0);
-            //Log.e("xx","fork"+JniTest.j_fork());
-        //if (JniTest.j_fork()==0) {
-            //setField(Looper.class,null,"sMainLooper",null);
-            //setField(Looper.class,null,"sThreadLocal",new ThreadLocal<Looper>());
-        //    AppManagerService.createApp();;
-        //}
-        //AppManager.get().startApp(this,"com.example.miaojie.sbbb",0);
-
-            //startActivity(new Intent(this,TestActivity.class));
-
-        //if (JniTest.j_fork()==0)
-        //    AppManagerService.createApp();
     }
 
     @Override

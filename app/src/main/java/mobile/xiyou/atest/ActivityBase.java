@@ -45,6 +45,7 @@ public class ActivityBase extends Activity{
     public ActivityBase()
     {
 
+
     }
 
     public void setRealActivity(Activity a)
@@ -83,6 +84,7 @@ public class ActivityBase extends Activity{
         return super.getResources();
     }
 
+
     @Override
     public AssetManager getAssets() {
         if (app!=null)
@@ -112,7 +114,7 @@ public class ActivityBase extends Activity{
         setTaskDescription(new ActivityManager.TaskDescription("aaaa"));
         app=((MainApp)getApplication()).getApp();
         app.solveIntent(this);
-
+        Log.e("xxx","sbbbbbbbbbbbbbbbbb");
         id=getIntent().getIntExtra("id",0);
 
         //app.solveIntent(this);
@@ -149,6 +151,7 @@ public class ActivityBase extends Activity{
         realActivity.onBackPressed();
 
     }
+
 
     @Override
     public void finishActivity(int requestCode) {

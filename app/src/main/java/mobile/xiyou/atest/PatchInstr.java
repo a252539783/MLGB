@@ -24,12 +24,12 @@ import java.lang.reflect.Method;
  * Created by admin on 2017/3/7.
  */
 
-public class PachInstr extends Instrumentation {
+public class PatchInstr extends Instrumentation {
 
     private Instrumentation base;
     private App app;
 
-    public PachInstr(Instrumentation x,App app)
+    public PatchInstr(Instrumentation x, App app)
     {
         base=x;
         this.app=app;

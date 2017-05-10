@@ -29,9 +29,9 @@ public class AppManagerService extends Service implements Runnable{
 
     public static final String FILE_APPNAME="launchAppName";
     public static final int RUN_MAX=50;
+    public static final String PACKAGE="mobile";
 
-    private HashMap<Integer,Integer> taskList,loadList;
-    private HashMap<String,Integer> appList;
+    private ArrayList<AppInfo> runningList;
     private boolean []runList;
     private int launchIndex=-1;
     private String launchAppName=null;
@@ -73,9 +73,7 @@ public class AppManagerService extends Service implements Runnable{
 
     public AppManagerService()
     {
-        appList=new HashMap<>();
-        taskList=new HashMap<>();
-        loadList=new HashMap<>();
+        runningList=new ArrayList<>();
         runList=new boolean[RUN_MAX];
         for (int i=0;i<RUN_MAX;i++)
         {
@@ -92,14 +90,7 @@ public class AppManagerService extends Service implements Runnable{
     {
         updateAppList();
 
-//taskid   launchId   pkg
         launchAppName=name;
-        Integer taskId=appList.get(name);
-        if (taskId!=null&&runList[taskList.get(taskId)])
-        {
-            startRunningApp(taskId);
-            return ;
-        }
 
         for (int i=0;i<RUN_MAX;i++)
         {
@@ -108,8 +99,33 @@ public class AppManagerService extends Service implements Runnable{
                 break;
             }
         }
+      /*  Integer taskId=appList.get(name);
+        if (taskId!=null&&runList[taskRunList.get(name)])
+        {
+            startRunningApp(taskId);
+            return ;
+        }
 
 
+
+        List<ActivityManager.RunningAppProcessInfo> rprocs=am.getRunningAppProcesses();
+        for (int i=0;i<rprocs.size();i++)
+        {
+            if (runProcessList.get(rprocs.get(i))!=null&&runProcessList.get(rprocs.get(i)).equals(name))
+            {
+                launchIndex=Integer.parseInt(rprocs.get(i).processName.split(":")[1].substring(1))-1;
+                break;
+            }
+        }*/
+
+        for (int i=0;i<runningList.size();i++)
+        {
+            if (runningList.get(i).name.equals(name))
+            {
+                launchIndex=runningList.get(i).launchIndex;
+                break;
+            }
+        }
 
         try {
             FileOutputStream fos=openFileOutput(FILE_APPNAME,MODE_PRIVATE);
@@ -118,7 +134,7 @@ public class AppManagerService extends Service implements Runnable{
             fos.close();
             Intent i=new Intent(this,Class.forName("mobile.xiyou.atest.ActivityBase$A"+(launchIndex+1)));
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            i.addFlags(Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS);
+            //i.addFlags(Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS);
             startActivity(i);
             //Log.e("xx",""+((ActivityManager)getSystemService(ACTIVITY_SERVICE)).getAppTasks().get(0).getTaskInfo().topActivity.getClassName());
         } catch (ClassNotFoundException e) {
@@ -143,33 +159,104 @@ public class AppManagerService extends Service implements Runnable{
                 break;
             }
         }
+        Log.e("xx",target.getTaskInfo().baseIntent.getComponent().getClassName());
         startActivity(target.getTaskInfo().baseIntent);
         //am.moveTaskToFront(taskId,0);
     }
 
     private void updateAppList()
     {
-        List<ActivityManager.AppTask> rapps=am.getAppTasks();
+        List<ActivityManager.RunningAppProcessInfo> rprocs=am.getRunningAppProcesses();
 
         for (int i=0;i<RUN_MAX;i++)
         {
             runList[i]=false;
         }
 
-        for (int i=0;i<rapps.size();i++)
+        for (int i=0;i<runningList.size();i++)
         {
-            if (!taskList.containsKey(rapps.get(i).getTaskInfo().id))
+            boolean find=false;
+            for (int j=0;j<rprocs.size();j++)
             {
-                taskList.put(rapps.get(i).getTaskInfo().id,launchIndex);
-                appList.put(launchAppName,rapps.get(i).getTaskInfo().id);
-                Log.e("xx","+  "+rapps.get(i).getTaskInfo().id);
+                if (rprocs.get(j).processName.equals(runningList.get(i).processName))
+                {
+                    find=true;
+                    break;
+                }
             }
 
-            int launchI=taskList.get(rapps.get(i).getTaskInfo().id);
-
-            if (launchI!=-1)
-                runList[launchI]=true;
+            if (!find)
+            {
+                runningList.remove(i);
+                i--;
+            }else
+            {
+                runList[runningList.get(i).launchIndex]=true;
+            }
         }
+
+        for (int i=0;i<rprocs.size();i++)
+        {
+            if (rprocs.get(i).processName.equals("mobile.xiyou.atest")||rprocs.get(i).processName.equals("mobile.xiyou.atest:manager"))
+                continue;
+            boolean find=false;
+            for (int j=0;j<runningList.size();j++)
+            {
+                if (rprocs.get(i).processName.equals(runningList.get(j).processName))
+                {
+                    find=true;
+                    break;
+                }
+            }
+            if (!find)
+            {
+                runningList.add(new AppInfo(0,launchIndex,launchAppName,rprocs.get(i).processName));
+                runList[launchIndex]=true;
+            }
+        }
+/*
+        for (int i=0;i<rapps.size();i++)
+        {
+            String cname=taskList.get(rapps.get(i).getTaskInfo().id);
+            if (rapps.get(i).getTaskInfo().id!=-1) {
+                if (cname != null && cname != PACKAGE) {          //not my activity
+
+                    runAppList.put(rapps.get(i).getTaskInfo().id, cname);
+                    appList.put(cname, rapps.get(i).getTaskInfo().id);
+                    taskRunList.put(cname, taskRunListBack.get(cname));
+
+                    int launchI = taskRunList.get(cname);
+
+                    if (launchI != -1)
+                        runList[launchI] = true;
+                } else if (cname == null && launchAppName != null) {                       //a activity started just now
+                    runAppList.put(rapps.get(i).getTaskInfo().id, launchAppName);
+                    taskList.put(rapps.get(i).getTaskInfo().id, launchAppName);
+                    appList.put(launchAppName, rapps.get(i).getTaskInfo().id);
+                    taskRunList.put(launchAppName, launchIndex);
+                    taskRunListBack.put(launchAppName, launchIndex);
+
+                    runList[launchIndex] = true;
+                }
+            }
+        }
+        for (int i=0;i<rprocs.size();i++)
+        {
+            String cname=runProcessList.get(rprocs.get(i).processName);
+                if (cname != null && cname != PACKAGE) {          //not my activity
+
+                    taskRunList.put(cname, taskRunListBack.get(cname));
+                    runList[Integer.parseInt(rprocs.get(i).processName.split(":")[1].substring(1))-1] = true;
+                } else if (cname == null && launchAppName != null) {                       //a activity started just now
+                    taskRunList.put(launchAppName, launchIndex);
+                    taskRunListBack.put(launchAppName, launchIndex);
+
+                    runList[launchIndex] = true;
+                    runProcessList.put(rprocs.get(i).processName,launchAppName);
+            }
+        }
+*/
+
     }
 
     @Nullable
@@ -184,10 +271,6 @@ public class AppManagerService extends Service implements Runnable{
         if (am==null) {
             am = ((ActivityManager) getSystemService(ACTIVITY_SERVICE));
             List<ActivityManager.AppTask> rapps = am.getAppTasks();
-
-            for (int i = 0; i < rapps.size(); i++) {
-                taskList.put(rapps.get(i).getTaskInfo().id, -1);
-            }
         }
         //new Thread(this).start();
         return super.onStartCommand(intent, flags, startId);
@@ -217,6 +300,20 @@ public class AppManagerService extends Service implements Runnable{
             Log.e("xx",e.getCause().toString());
         } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
+        }
+    }
+
+    class AppInfo
+    {
+        int id,launchIndex;
+        String name,processName;
+
+        public AppInfo(int _id,int _ind,String name,String processName)
+        {
+            id=_id;
+            this.launchIndex=_ind;
+            this.name=name;
+            this.processName=processName;
         }
     }
 }

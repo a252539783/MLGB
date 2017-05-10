@@ -50,7 +50,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.Reference;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import static mobile.xiyou.atest.Rf.*;
 
@@ -85,6 +88,10 @@ public class ContextBase extends ContextWrapper {
             //thread=readField(Class.forName("android.app.ActivityThread"),null,"currentActivityThread");
             Object compat=readField(Class.forName("android.content.res.CompatibilityInfo"),null,"DEFAULT_COMPATIBILITY_INFO");
             loaded=invoke(thread.getClass(),thread,"getPackageInfoNoCheck",new Class[]{ApplicationInfo.class,Class.forName("android.content.res.CompatibilityInfo")},info,compat);   //LoadedApk
+            setField(loaded,"mResDir",info.sourceDir);
+            setField(loaded,"mSplitResDirs",info.splitSourceDirs);
+            Log.e("xx","dir:"+info.sourceDir+":"+info.splitSourceDirs);
+            //loaded=invoke(thread,"getPackageInfo",new Class[]{ApplicationInfo.class,Class.forName("android.content.res.CompatibilityInfo"),int.class},info,compat, Context.CONTEXT_INCLUDE_CODE + Context.CONTEXT_IGNORE_SECURITY);
         } catch (ClassNotFoundException e) {
             Log.e("xx",e.toString());
         }
@@ -171,7 +178,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
     /**
      * Map from package name, to preference name, to cached preferences.
      */
-//    private static ArrayMap<String, ArrayMap<String, SharedPreferencesImpl>> sSharedPrefs;
+    private static ArrayMap<String, ArrayMap<String, Object>> sSharedPrefs;
 
     Object mMainThread;     //ActivityThread
     Object mPackageInfo;    //LoadedAPK
@@ -289,7 +296,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
             return mTheme;
         }
 
-        mThemeResource = selectDefaultTheme(mThemeResource,
+        mThemeResource =selectDefaultTheme(mThemeResource,
                 getOuterContext().getApplicationInfo().targetSdkVersion);
         initializeTheme();
 
@@ -298,9 +305,9 @@ class ReceiverRestrictedContext extends ContextWrapper {
 
     private static int selectDefaultTheme(int curTheme, int targetSdkVersion) {
         try {
-             return (int)invoke(Class.forName("android.app.ContextImpl"),null,"selectDefaultTheme",new Class[]{int .class,int.class},curTheme,targetSdkVersion);
+             return (int)invoke(Class.forName("android.content.res.Resources"),null,"selectDefaultTheme",new Class[]{int .class,int.class},curTheme,targetSdkVersion);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            Log.e("xx",e.toString());
         }
         return 0;
     }
@@ -392,25 +399,33 @@ class ReceiverRestrictedContext extends ContextWrapper {
 
     @Override
     public SharedPreferences getSharedPreferences(String name, int mode) {
-        return mMainContext.getSharedPreferences(name,mode);
-        /*
-        SharedPreferencesImpl sp;
-        synchronized (ContextImpl.class) {
+        //return mMainContext.getSharedPreferences(name,mode);
+
+        Class spcls=null;
+        try {
+            spcls=Class.forName("android.app.SharedPreferencesImpl");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            Log.e("xx",e.toString());
+        }
+
+        Object sp;
+        synchronized (this) {
             if (sSharedPrefs == null) {
-                sSharedPrefs = new ArrayMap<String, ArrayMap<String, SharedPreferencesImpl>>();
+                sSharedPrefs = new ArrayMap<String, ArrayMap<String, Object>>();
             }
 
             final String packageName = getPackageName();
-            ArrayMap<String, SharedPreferencesImpl> packagePrefs = sSharedPrefs.get(packageName);
+            ArrayMap<String, Object> packagePrefs = sSharedPrefs.get(packageName);
             if (packagePrefs == null) {
-                packagePrefs = new ArrayMap<String, SharedPreferencesImpl>();
+                packagePrefs = new ArrayMap<String, Object>();
                 sSharedPrefs.put(packageName, packagePrefs);
             }
 
             // At least one application in the world actually passes in a null
             // name.  This happened to work because when we generated the file name
             // we would stringify it to "null.xml".  Nice.
-            if (mPackageInfo.getApplicationInfo().targetSdkVersion <
+            if (app.getInfo().info.applicationInfo.targetSdkVersion <
                     Build.VERSION_CODES.KITKAT) {
                 if (name == null) {
                     name = "null";
@@ -420,9 +435,21 @@ class ReceiverRestrictedContext extends ContextWrapper {
             sp = packagePrefs.get(name);
             if (sp == null) {
                 File prefsFile = getSharedPrefsFile(name);
-                sp = new SharedPreferencesImpl(prefsFile, mode);
+                try {
+                    Constructor c=spcls.getDeclaredConstructor(File.class,int.class);
+                    c.setAccessible(true);
+                    sp = c.newInstance(prefsFile,mode);
+                } catch (InstantiationException e) {
+                    Log.e("xx",e.toString());
+                } catch (IllegalAccessException e) {
+                    Log.e("xx",e.toString());
+                } catch (InvocationTargetException e) {
+                    Rf.p("sp newinstance",e);
+                } catch (NoSuchMethodException e) {
+                    Log.e("xx",e.toString());
+                }
                 packagePrefs.put(name, sp);
-                return sp;
+                return (SharedPreferences) sp;
             }
         }
         if ((mode & Context.MODE_MULTI_PROCESS) != 0 ||
@@ -430,10 +457,11 @@ class ReceiverRestrictedContext extends ContextWrapper {
             // If somebody else (some other process) changed the prefs
             // file behind our back, we reload it.  This has been the
             // historical (if undocumented) behavior.
-            sp.startReloadIfChangedUnexpectedly();
+           // sp.startReloadIfChangedUnexpectedly();
+            invoke(sp,"startReloadIfChangedUnexpectedly");
         }
-        return sp;
-        */
+        return (SharedPreferences) sp;
+
     }
 
 
@@ -2059,11 +2087,19 @@ class ReceiverRestrictedContext extends ContextWrapper {
     /** {@hide} */
     public int getUserId() {
         return (int)invoke(mUser,"getIdentifier");
+        //return app.getInfo().info.applicationInfo.uid;
     }
 
     public ContextBase(Context base)
     {
         super(base);
+    }
+
+    public ContextBase(Context container, Object mainThread,
+                       Object packageInfo,App app, boolean restricted,Activity activity
+    ){
+        this(container, mainThread, packageInfo, app, restricted);
+        mOuterContext=activity;
     }
 
     public ContextBase(Context container, Object mainThread,
@@ -2080,7 +2116,6 @@ class ReceiverRestrictedContext extends ContextWrapper {
         if (mUser == null) {
             mUser = Process.myUserHandle();
         }
-        //mUser = null;
 
         this.app=app;
         mResources=app.getRes();
@@ -2148,7 +2183,8 @@ class ReceiverRestrictedContext extends ContextWrapper {
 
         mBasePackageName=null;
         mOpPackageName=null;
-        //mResources=app.getRes();
+        mResources=app.getRes();
+
     }
 
     void installSystemApplicationInfo(ApplicationInfo info, ClassLoader classLoader) {

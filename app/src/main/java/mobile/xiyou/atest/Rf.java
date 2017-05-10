@@ -146,4 +146,21 @@ public class Rf {
         return null;
     }
 
+    public static void p(Method m,InvocationTargetException e)
+    {
+        Throwable ee=e.getCause();
+        while (ee!=null) {
+            Log.e("xx", "in " + m.getName() +":"+ ee.toString());
+            ee=ee.getCause();
+        }
+    }
+
+    public static void p(String m,InvocationTargetException e)
+    {
+        Throwable ee=e.getCause();
+        while (ee!=null) {
+            Log.e("xx", "in " + m +":"+ ee.toString());
+            ee=ee.getCause();
+        }
+    }
 }
