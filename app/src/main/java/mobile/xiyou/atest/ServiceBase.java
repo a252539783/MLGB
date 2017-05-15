@@ -46,13 +46,14 @@ public class ServiceBase extends Service {
         if (app==null)
         {
             app=((MainApp)getApplication()).getApp();
+
         }
         Service r=app.solveIntent(this,intent);
         realServices.put(r.getClass().getName(),r);
         super.onStart(intent, startId);
         intent=intent.getParcelableExtra(App.EXTRA_OLD_INTENT);
         r.onStart(intent,startId);
-        Log.e("xx","load service :"+realServices.size()+":"+r.getClass().getName());
+        //Log.e("xx","load service :"+realServices.size()+":"+r.getClass().getName());
     }
 
     @Override

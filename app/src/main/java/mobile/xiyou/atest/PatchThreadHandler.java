@@ -57,7 +57,7 @@ public class PatchThreadHandler implements Handler.Callback {
 
             ActivityInfo ai = app.getActInfo(cls);
             setField(r, "activityInfo", ai);
-            Log.e("xx", "launch activity" + ai.name + ":" + ai.applicationInfo.packageName);
+            //Log.e("xx", "launch activity" + ai.name + ":" + ai.applicationInfo.packageName);
 
             setField(r, "packageInfo", app.getLoadedApk());
             try {

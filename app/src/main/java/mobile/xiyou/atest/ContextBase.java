@@ -52,8 +52,11 @@ import java.io.InputStream;
 import java.lang.ref.Reference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.HashMap;
 
 import static mobile.xiyou.atest.Rf.*;
 
@@ -62,6 +65,38 @@ import static mobile.xiyou.atest.Rf.*;
  */
 
 public class ContextBase extends ContextWrapper {
+
+    public static void patchService()
+    {
+        Class ServiceFetcher=null;
+        Method regist=null;
+        HashMap featchers=null;
+        try {
+            ServiceFetcher=Class.forName("android.app.SystemServiceRegistry$ServiceFetcher");
+            //regist=Class.forName("android.app.SystemServiceRegistry").getDeclaredMethod("registerService",new Class[]{String.class,Class.class,ServiceFetcher});
+            featchers=(HashMap)readField(Class.forName("android.app.SystemServiceRegistry"),null,"SYSTEM_SERVICE_FETCHERS");
+            //regist.setAccessible(true);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            Log.e("xx",e.toString());
+        }
+
+        featchers.put(Context.LAYOUT_INFLATER_SERVICE, Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),new Class[]{ServiceFetcher},new LF(featchers.get(Context.LAYOUT_INFLATER_SERVICE))));
+    }
+
+    private static class LF implements InvocationHandler{
+
+        Object base=null;
+        public LF(Object o){base=o;}
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            return Class.forName("com.android.internal.policy.PhoneLayoutInflater").getDeclaredConstructor(Context.class).newInstance(App.context2);
+            //return null;
+            //return method.invoke(base,args);
+
+        }
+    }
 
     /*
         r.packageInfo = ActivityThread.getPackageInfoNoCheck(
@@ -347,9 +382,9 @@ class ReceiverRestrictedContext extends ContextWrapper {
     public String getPackageName() {
         if (mPackageInfo != null) {
             //return mPackageInfo.getPackageName();
-            mBasePackageName=(String)invoke(mPackageInfo,"getPackageName",new Class[]{});
+            mBasePackageName=mMainContext.getPackageName();
             mOpPackageName=mBasePackageName;
-            return mBasePackageName;
+            return (String)invoke(mPackageInfo,"getPackageName",new Class[]{});
         }
         // No mPackageInfo means this is a Context for the system itself,
         // and this here is its name.
@@ -358,12 +393,12 @@ class ReceiverRestrictedContext extends ContextWrapper {
 
 
     public String getBasePackageName() {
-        return mMainContext.getPackageName();
+        return getPackageName();
     }
 
 
     public String getOpPackageName() {
-        return mMainContext.getPackageName();
+        return getPackageName();
     }
 
     @Override

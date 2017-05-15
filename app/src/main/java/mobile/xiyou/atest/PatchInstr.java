@@ -54,12 +54,10 @@ public class PatchInstr extends Instrumentation {
         }
 
         if (x!=null) {
-            Log.e("xx","start for result");
             return (ActivityResult) x;
 
         }
 
-        Log.e("xx","start no result");
         return null;
     }
 

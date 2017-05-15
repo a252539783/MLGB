@@ -3,20 +3,14 @@ package mobile.xiyou.atest;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Application;
-import android.content.ComponentCallbacks;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
 import android.os.Process;
-import android.os.RemoteException;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import mobile.xiyou.hook.ArtHook;
@@ -98,6 +92,8 @@ public class MainApp extends Application {
         app=new App(this,appName,appid);
         realapp=app.getApplication();
 
+        ActivityManagerHook.patch();
+        NotificationManagerHook.patch();
         app.patchThread();
         patchContext();
     }

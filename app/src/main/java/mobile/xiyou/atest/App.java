@@ -52,14 +52,17 @@ public class App {
     private Resources.Theme theme;
     private HashMap<Integer,Resources.Theme> themes;
     private Context context, baseContext;
+    public static Context context2;
     private int id=0,appid=0;
     private boolean appAttached=false,taskAdded=false;
     private Object mThread=null,loadedApk=null,baseLoadedApk=null;
     private Class mActivityClass=null,mServiceClass=null;
     private Context appContext;
+    private static App app;
 
     public App(Context c,String packageName,int appid)
     {
+        app=this;
         this.appid=appid;
         baseContext =c;
         context=c;
@@ -92,15 +95,18 @@ public class App {
             info.info.applicationInfo.dataDir="/data/data/"+info.info.packageName+"";
             info.info.applicationInfo.sourceDir=apkPath;
             loadedApk=ContextBase.loadApk(mThread,info.info.applicationInfo);
+
             baseLoadedApk=ContextBase.loadApk(mThread,c.getApplicationInfo());
+            context2=(Context)invoke(Class.forName("android.app.ContextImpl"),null,"createActivityContext",new Class[]{mThread.getClass(),loadedApk.getClass(),int.class, Configuration.class},mThread,loadedApk, Display.DEFAULT_DISPLAY,new Configuration());
 
             baseContext=(Context)invoke(Class.forName("android.app.ContextImpl"),null,"createActivityContext",new Class[]{mThread.getClass(),baseLoadedApk.getClass(),int.class, Configuration.class},mThread,baseLoadedApk, Display.DEFAULT_DISPLAY,new Configuration());
+
             invoke(baseContext,"setOuterContext",new Class[]{Context.class},baseContext);
             //Log.e("xx","xx"+(readField(loadedApk.getClass(),loadedApk,"mPackageName")==null));
             //invoke(loadedApk.getClass(),loadedApk,"makeApplication",new Class[]{boolean.class,Instrumentation.class},false,null);
             //cc=ContextBase.createActivityContext(mThread,loadedApk);
             //context=cc;
-
+            //ContextBase.patchService();
             loader=new PathClassLoader(apkPath,cc.getApplicationInfo().nativeLibraryDir,ClassLoader.getSystemClassLoader());
             ClassLoader old=c.getClassLoader();
             setField(ClassLoader.class,loader,"parent",old.getParent());
@@ -130,7 +136,11 @@ public class App {
             theme.applyStyle(info.info.applicationInfo.theme, true);
 
             setField(loadedApk,"mResources",res);
+            context=new ContextBase(baseContext,mThread,loadedApk,this,false);
             attachApplication(c);
+
+            //ContextBase.patchService();
+
         } catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());
         } catch (InstantiationException e) {
@@ -160,7 +170,7 @@ public class App {
 
     public Context creteActivityContext(Activity a)
     {
-        return new ContextBase(baseContext,mThread,loadedApk,this,false,a);
+        return new ContextBase(context2,mThread,loadedApk,this,false,a);
     }
 
 
@@ -353,6 +363,11 @@ public class App {
         return (List)o;
     }
 
+    public static App get()
+    {
+        return app;
+    }
+
     public Activity getActivity(String name)
     {
         try {
@@ -409,7 +424,7 @@ public class App {
     {
         setField(mThread,"mInstrumentation",new PatchInstr((Instrumentation) readField(mThread,"mInstrumentation"),this));
         try {
-            context=new ContextBase(baseContext,mThread,loadedApk,this,false);
+
             appContext=new ContextBase(c,mThread,loadedApk,this,false);
             Method m = Application.class.getDeclaredMethod("attach", Context.class);
             m.setAccessible(true);

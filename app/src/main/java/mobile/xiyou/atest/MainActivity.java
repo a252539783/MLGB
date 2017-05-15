@@ -38,7 +38,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Objects;
@@ -157,7 +159,7 @@ if (v.getId()==R.id.aaa) {
 //           ams.startApp("com.teslacoilsw.launcher");
 //        ams.startApp("com.tencent.mobileqq");
 //        ams.startApp("com.coolapk.market");
-        ams.startApp("cn.kuwo.player");
+        ams.startApp("a.a.zzz");
     } catch (RemoteException e) {
         e.printStackTrace();
         Log.e("xx", e.toString());
@@ -167,9 +169,8 @@ if (v.getId()==R.id.aaa) {
     if (v.getId()==R.id.bbb)
     {
         try {
-//            ams.startApp("com.example.wyz.xiyoug");
-           ams.startApp("com.youku.phone");
-
+//            ams.startApp("com.example.share4_15");
+           ams.startApp("xiyou.mobile.android.elisten");
             //ams.startApp("com.tencent.mobileqq");
             //ams.startApp("a.a.zzz");
         } catch (RemoteException e) {
