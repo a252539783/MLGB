@@ -277,6 +277,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
 
     @Override
     public Resources getResources() {
+        Log.e("xx",""+mResources.hashCode()+":"+mMainContext.hashCode());
         return mResources;
     }
 
@@ -2102,7 +2103,8 @@ class ReceiverRestrictedContext extends ContextWrapper {
             dataDir=((File)invoke(mPackageInfo,"getDataDirFile")).getAbsolutePath();
 
         }
-        return new File(mMainContext.getFilesDir().getAbsolutePath()+dataDir);
+        //return new File(mMainContext.getFilesDir().getAbsolutePath()+dataDir);
+        return new File(dataDir);
         //throw new RuntimeException("Not supported in system context");
     }
 

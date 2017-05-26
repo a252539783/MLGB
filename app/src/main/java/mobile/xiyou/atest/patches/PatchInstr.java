@@ -1,4 +1,4 @@
-package mobile.xiyou.atest;
+package mobile.xiyou.atest.patches;
 
 import android.app.Activity;
 import android.app.Application;
@@ -19,6 +19,8 @@ import android.view.MotionEvent;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+
+import mobile.xiyou.atest.App;
 
 /**
  * Created by admin on 2017/3/7.

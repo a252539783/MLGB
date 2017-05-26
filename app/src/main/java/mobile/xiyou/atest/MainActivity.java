@@ -37,10 +37,12 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Objects;
@@ -105,8 +107,6 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
             startActivity(i);
             started=true;
         }
-        Log.e("xx","dir:"+getApplicationInfo().sourceDir+":"+getApplicationInfo().splitSourceDirs);
-
 
         //ArtHook.hook(MainActivity.class);
     }

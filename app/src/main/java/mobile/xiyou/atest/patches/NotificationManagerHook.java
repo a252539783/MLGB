@@ -1,4 +1,4 @@
-package mobile.xiyou.atest;
+package mobile.xiyou.atest.patches;
 
 import android.app.NotificationManager;
 import android.util.Log;
@@ -6,6 +6,8 @@ import android.util.Log;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+
+import mobile.xiyou.atest.Rf;
 
 /**
  * Created by user on 2017/5/14.
@@ -21,7 +23,7 @@ public class NotificationManagerHook implements InvocationHandler {
 
     public static void patch()
     {
-            Object service=Rf.invoke(NotificationManager.class,null,"getService");
+            Object service= Rf.invoke(NotificationManager.class,null,"getService");
             //Object gDefault=Rf.readField(AMN,null,"gDefault");
         //Log.e("xx","patch nm start"+Rf.readField(NotificationManager.class,null,"sService").toString());
         Object proxy= null;
@@ -42,6 +44,7 @@ public class NotificationManagerHook implements InvocationHandler {
         //Log.e("xx","exec "+method.getName()+":"+args[0]+"XX"+args[1]);
         //args[0]=App.get().getInfo().info.packageName;
         //args[6]=10187;
-        return method.invoke(mBase,args);
+       // return method.invoke(mBase,args);
+        return null;
     }
 }

@@ -1,4 +1,4 @@
-package mobile.xiyou.atest;
+package mobile.xiyou.atest.patches;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -11,6 +11,8 @@ import android.util.Log;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+
+import mobile.xiyou.atest.App;
 
 import static mobile.xiyou.atest.Rf.*;
 
@@ -70,7 +72,7 @@ public class PatchThreadHandler implements Handler.Callback {
 
             Activity activity=(Activity)readField(r,"activity");
 
-            invoke(activity,"attachBaseContext",new Class[]{Context.class},app.creteActivityContext(activity));
+            //invoke(activity,"attachBaseContext",new Class[]{Context.class},app.createActivityContext(activity));
             return true;
         }else
 

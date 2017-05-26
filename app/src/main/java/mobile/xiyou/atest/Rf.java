@@ -20,7 +20,7 @@ public class Rf {
             return f.get(o);
         }catch (Exception e)
         {
-            Log.e("xx",e.toString());
+
             Field f = null;
             try {
                 f = o.getClass().getField(name);
@@ -29,6 +29,8 @@ public class Rf {
             } catch (Exception e1) {
                 Log.e("xx",e1.toString());
             }
+            //if(f==null)
+            Log.e("xx",e.toString());
 
         }
         return null;
@@ -55,7 +57,16 @@ public class Rf {
             f.set(o,x);
         }catch (Exception e)
         {
-            Log.e("xx",e.toString());
+            Field f = null;
+            try {
+                f = o.getClass().getField(name);
+                f.setAccessible(true);
+                f.set(o,x);
+            } catch (Exception e1) {
+                Log.e("xx","in "+o.getClass().getName()+":"+e1.toString());
+            }
+            //if(f==null)
+                Log.e("xx","in "+o.getClass().getName()+":"+e.toString());
         }
     }
 
@@ -103,7 +114,15 @@ public class Rf {
         {
             Log.e("xx","in"+m.getName()+e.getCause().toString());
         } catch (NoSuchMethodException e) {
-            Log.e("xx",r.toString()+":"+e.toString());
+            try {
+                m =r.getMethod(name,vp);
+                m.setAccessible(true);
+                return m.invoke(o,params);
+            } catch (Exception e1) {
+                Log.e("xx",e1.toString());
+            }
+            //if(m==null)
+                Log.e("xx",r.toString()+":"+e.toString());
         } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());
         }
@@ -122,6 +141,15 @@ public class Rf {
         {
             Log.e("xx","in"+m.getName()+e.getCause().toString());
         } catch (NoSuchMethodException e) {
+            try {
+                m =r.getMethod(name,new Class[]{});
+                m.setAccessible(true);
+                return m.invoke(o);
+            } catch (Exception e1) {
+                Log.e("xx",e1.toString());
+            }
+            //if(m==null)
+                Log.e("xx",r.toString()+":"+e.toString());
             Log.e("xx",r.toString()+":"+e.toString());
         } catch (IllegalAccessException e) {
             Log.e("xx",e.toString());

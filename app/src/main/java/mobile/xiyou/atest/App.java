@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 import dalvik.system.PathClassLoader;
+import mobile.xiyou.atest.patches.PatchInstr;
+import mobile.xiyou.atest.patches.PatchThreadHandler;
 
 import static android.content.Context.CONTEXT_IGNORE_SECURITY;
 import static mobile.xiyou.atest.Rf.*;
@@ -95,18 +97,6 @@ public class App {
             info.info.applicationInfo.dataDir="/data/data/"+info.info.packageName+"";
             info.info.applicationInfo.sourceDir=apkPath;
             loadedApk=ContextBase.loadApk(mThread,info.info.applicationInfo);
-
-            baseLoadedApk=ContextBase.loadApk(mThread,c.getApplicationInfo());
-            context2=(Context)invoke(Class.forName("android.app.ContextImpl"),null,"createActivityContext",new Class[]{mThread.getClass(),loadedApk.getClass(),int.class, Configuration.class},mThread,loadedApk, Display.DEFAULT_DISPLAY,new Configuration());
-
-            baseContext=(Context)invoke(Class.forName("android.app.ContextImpl"),null,"createActivityContext",new Class[]{mThread.getClass(),baseLoadedApk.getClass(),int.class, Configuration.class},mThread,baseLoadedApk, Display.DEFAULT_DISPLAY,new Configuration());
-
-            invoke(baseContext,"setOuterContext",new Class[]{Context.class},baseContext);
-            //Log.e("xx","xx"+(readField(loadedApk.getClass(),loadedApk,"mPackageName")==null));
-            //invoke(loadedApk.getClass(),loadedApk,"makeApplication",new Class[]{boolean.class,Instrumentation.class},false,null);
-            //cc=ContextBase.createActivityContext(mThread,loadedApk);
-            //context=cc;
-            //ContextBase.patchService();
             loader=new PathClassLoader(apkPath,cc.getApplicationInfo().nativeLibraryDir,ClassLoader.getSystemClassLoader());
             ClassLoader old=c.getClassLoader();
             setField(ClassLoader.class,loader,"parent",old.getParent());
@@ -116,6 +106,34 @@ public class App {
             Map packages=(Map)readField(AT,mThread,"mPackages");
             packages.put(info.info.packageName,new WeakReference<Object>(loadedApk));
             setField(loadedApk.getClass(),loadedApk,"mClassLoader",loader);
+            //cc=ContextBase.createActivityContext(mThread,loadedApk);
+
+            //Load resources:
+            am = AssetManager.class.newInstance();
+            Method add = am.getClass().getMethod("addAssetPath", String.class);
+            add.invoke(am, apkPath);
+            //add.invoke(am,c.getApplicationInfo().sourceDir);
+            Log.e("xx",apkPath+":"+c.getApplicationInfo().sourceDir);
+            res = new Resources(am, c.getResources().getDisplayMetrics(), c.getResources().getConfiguration());
+            theme = res.newTheme();
+            theme.setTo(cc.getTheme());
+            theme.applyStyle(info.info.applicationInfo.theme, true);
+            setField(loadedApk,"mResources",res);
+
+            baseLoadedApk=ContextBase.loadApk(mThread,c.getApplicationInfo());
+            context2=(Context)invoke(Class.forName("android.app.ContextImpl"),null,"createActivityContext",new Class[]{mThread.getClass(),loadedApk.getClass(),int.class, Configuration.class},mThread,loadedApk, Display.DEFAULT_DISPLAY,new Configuration());
+
+            baseContext=(Context)invoke(Class.forName("android.app.ContextImpl"),null,"createActivityContext",new Class[]{mThread.getClass(),baseLoadedApk.getClass(),int.class, Configuration.class},mThread,baseLoadedApk, Display.DEFAULT_DISPLAY,new Configuration());
+            setField(context2,"mResources",res);
+            //setField(baseContext,"mResources",res);
+            invoke(baseContext,"setOuterContext",new Class[]{Context.class},baseContext);
+            //Log.e("xx","xx"+(readField(loadedApk.getClass(),loadedApk,"mPackageName")==null));
+            //invoke(loadedApk.getClass(),loadedApk,"makeApplication",new Class[]{boolean.class,Instrumentation.class},false,null);
+            //
+            //context=cc;
+            //ContextBase.patchService();
+
+
 
             if (info.info.applicationInfo.className!=null) {
                 application = (Application) loader.loadClass(info.info.applicationInfo.className).newInstance();
@@ -123,22 +141,15 @@ public class App {
             }
             else
             application=new Application();
+
             setField(loadedApk.getClass(),loadedApk,"mApplication",application);
             themes=new HashMap<>();
 
-            //Load resources:
-            am = AssetManager.class.newInstance();
-            Method add = am.getClass().getMethod("addAssetPath", String.class);
-            add.invoke(am, apkPath);
-            res = new Resources(am, c.getResources().getDisplayMetrics(), c.getResources().getConfiguration());
-            theme = res.newTheme();
-            theme.setTo(cc.getTheme());
-            theme.applyStyle(info.info.applicationInfo.theme, true);
 
-            setField(loadedApk,"mResources",res);
             context=new ContextBase(baseContext,mThread,loadedApk,this,false);
-            attachApplication(c);
 
+            attachApplication(c);
+            appAttached=true;
             //ContextBase.patchService();
 
         } catch (NoSuchMethodException e) {
@@ -163,12 +174,13 @@ public class App {
 
     public void patchThread()
     {
+
         setField(Handler.class,readField(mThread,"mH"),"mCallback",new PatchThreadHandler(readField(mThread,"mH"),this));
         setField(mThread,"mInitialApplication",application);
-        setField(mThread,"packageInfo",loadedApk);
+        //setField(mThread,"packageInfo",loadedApk);
     }
 
-    public Context creteActivityContext(Activity a)
+    public Context createActivityContext(Activity a)
     {
         return new ContextBase(context2,mThread,loadedApk,this,false,a);
     }

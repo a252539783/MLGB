@@ -44,8 +44,7 @@ public class ActivityBase extends Activity{
 
     public ActivityBase()
     {
-
-
+        Log.e("xx","failed");
     }
 
     public void setRealActivity(Activity a)
