@@ -17,7 +17,7 @@ public class AppManager {
     private AppManager()
     {
         this.apps=new HashMap<>();
-        Log.e("xx","new");
+        //Log.e("xx","newaaa");
     }
 
     public App getApp(int id)
