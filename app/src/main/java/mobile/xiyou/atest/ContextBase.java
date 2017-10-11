@@ -385,7 +385,8 @@ class ReceiverRestrictedContext extends ContextWrapper {
             //return mPackageInfo.getPackageName();
             mBasePackageName=mMainContext.getPackageName();
             mOpPackageName=mBasePackageName;
-            return (String)invoke(mPackageInfo,"getPackageName",new Class[]{});
+            //return (String)invoke(mPackageInfo,"getPackageName",new Class[]{});
+            return mBasePackageName;
         }
         // No mPackageInfo means this is a Context for the system itself,
         // and this here is its name.
@@ -2103,8 +2104,8 @@ class ReceiverRestrictedContext extends ContextWrapper {
             dataDir=((File)invoke(mPackageInfo,"getDataDirFile")).getAbsolutePath();
 
         }
-        //return new File(mMainContext.getFilesDir().getAbsolutePath()+dataDir);
-        return new File(dataDir);
+        return new File(mMainContext.getFilesDir().getAbsolutePath()+dataDir);
+        //return new File(dataDir);
         //throw new RuntimeException("Not supported in system context");
     }
 

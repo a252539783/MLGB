@@ -34,6 +34,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -155,11 +156,11 @@ public class MainActivity extends Activity implements Runnable,View.OnClickListe
 if (v.getId()==R.id.aaa) {
     //Toast.makeText().show();
     try {
-//            ams.startApp("com.example.wyz.xiyoug");
+            ams.startApp("com.example.wyz.xiyoug");
 //           ams.startApp("com.teslacoilsw.launcher");
 //        ams.startApp("com.tencent.mobileqq");
 //        ams.startApp("com.coolapk.market");
-        ams.startApp("a.a.zzz");
+//        ams.startApp("a.a.zzz");
     } catch (RemoteException e) {
         e.printStackTrace();
         Log.e("xx", e.toString());
@@ -170,9 +171,9 @@ if (v.getId()==R.id.aaa) {
     {
         try {
 //            ams.startApp("com.example.share4_15");
-           ams.startApp("xiyou.mobile.android.elisten");
+           //ams.startApp("xiyou.mobile.android.elisten");
             //ams.startApp("com.tencent.mobileqq");
-            //ams.startApp("a.a.zzz");
+            ams.startApp("com.our_company.iqiyi");
         } catch (RemoteException e) {
             e.printStackTrace();
             Log.e("xx", e.toString());

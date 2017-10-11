@@ -146,7 +146,7 @@ public class App {
             themes=new HashMap<>();
 
 
-            context=new ContextBase(baseContext,mThread,loadedApk,this,false);
+            context=new ContextBase(c,mThread,loadedApk,this,false);
 
             attachApplication(c);
             appAttached=true;

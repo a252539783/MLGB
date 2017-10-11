@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 import mobile.xiyou.atest.patches.ActivityManagerHook;
 import mobile.xiyou.atest.patches.Libcore_;
 import mobile.xiyou.atest.patches.NotificationManagerHook;
+import mobile.xiyou.atest.patches.WindowManagerHook;
 import mobile.xiyou.hook.ArtHook;
 import mobile.xiyou.hook.OriginalMethod;
 
@@ -103,14 +104,20 @@ public class MainApp extends Application {
         }
 
 
+        Libcore_.patch(this);
         app=new App(this,appName,appid);
         realapp=app.getApplication();
 
-        Libcore_.patch(this);
+
         ActivityManagerHook.patch();
+        WindowManagerHook.patch();
         NotificationManagerHook.patch();
         app.patchThread();
         patchContext();
+
+        /*unknown
+        NetworkScoreService
+         */
     }
 
     private void patchContext()
@@ -128,6 +135,7 @@ public class MainApp extends Application {
         {
             //newBase=app.createActivityContext((Activity)recv);
             newBase=app.getContext();
+            //newBase=app.context2;
             Log.e("xx","context set");
         }
             om.invoke(recv,newBase);

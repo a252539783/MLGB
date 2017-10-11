@@ -20,7 +20,7 @@ import mobile.xiyou.hook.OriginalMethod;
 
 public class Libcore_ {
 
-    private static OriginalMethod open =null,mkdir=null,access=null,chmod=null,chown=null,lchown,link=null,lstat=null,mkfifo,readlink,remove,rename,stat,statvfs,symlink;
+    private static OriginalMethod open =null,mkdir=null,access=null,chmod=null,chown=null,lchown,link=null,lstat=null,mkfifo,readlink,remove,rename,stat,statvfs,symlink,nativeLoad,load;
     private static Object os =null;
     private static String path_=null;
     private static String mPath=null;
@@ -63,6 +63,12 @@ public class Libcore_ {
                     ,Libcore_.class.getDeclaredMethod("stat",String.class),null);
             statvfs= ArtHook.hook(Class.forName("libcore.io.BlockGuardOs").getDeclaredMethod("statvfs",new Class[]{String.class})
                     ,Libcore_.class.getDeclaredMethod("statvfs",String.class),null);
+
+
+            //nativeLoad=ArtHook.hook(Runtime.class.getDeclaredMethod("nativeLoad",new Class[]{String.class,ClassLoader.class,String .class}),
+             //       Libcore_.class.getDeclaredMethod("nativeLoad",new Class[]{String.class,ClassLoader.class,String .class}),null);
+            //load=ArtHook.hook(System.class.getDeclaredMethod("load",new Class[]{String.class})
+            //        ,Libcore_.class.getDeclaredMethod("load",new Class[]{String.class}),null);
             os =Rf.readField(Class.forName("libcore.io.Libcore"),null,"os");
         } catch (NoSuchMethodException e) {
             Log.e("xx",e.toString());
@@ -71,6 +77,20 @@ public class Libcore_ {
             Log.e("xx",e.toString());
         }
 
+    }
+
+    public static void load(String path)
+    {
+        Log.e("xx","load:"+path);
+        //path=solvePath(path);
+        load.invoke(null,path);
+    }
+
+    public static String nativeLoad(String file,ClassLoader loader,String ldlib)
+    {
+        //file=solvePath(file);
+        Log.e("xx","nativeLoad:"+file+":"+ldlib);
+        return nativeLoad.invoke(null,file,loader,ldlib);
     }
 
     public StructStat stat(String path)   {

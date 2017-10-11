@@ -10,6 +10,7 @@ import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -128,6 +129,12 @@ public class AppManagerService extends Service implements Runnable{
         }
 
         try {
+            File cc=new File(getFilesDir().getAbsolutePath()+"/data/data/"+name);
+            if (!cc.exists()) {
+                cc.mkdirs();
+                Log.e("xx","app create:"+cc.getAbsolutePath());
+            }
+
             FileOutputStream fos=openFileOutput(FILE_APPNAME,MODE_PRIVATE);
             fos.write((name+"/"+launchIndex).getBytes());
             Log.e("xx",(name+"|"+launchIndex));
